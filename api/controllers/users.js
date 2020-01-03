@@ -38,11 +38,13 @@ exports.registerUser = (req, res, next) => {
     });
   } else {
     res.status(400).json({
-      message: "ensure payload has all the required information"
+      message: "ensure the payload has all the required information"
     });
   }
   
 };
 
 // authenticate a user
-exports.authenticateUser = (req, res, next) => {};
+exports.authenticateUser = (req, res, next) => {
+  let loginCredentials = req.body;
+};
