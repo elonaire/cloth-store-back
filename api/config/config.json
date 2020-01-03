@@ -1,0 +1,18 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "Asenekatenka_95!?",
+    "database": "clothstore",
+    "host": "127.0.0.1",
+    "port": 5432,
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password":  "Asenekatenka_95!?",
+    "database": "clothstore",
+    "host": "127.0.0.1",
+    "port": 5432,
+    "dialect": "postgres"
+  }
+}
