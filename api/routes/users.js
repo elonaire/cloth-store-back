@@ -9,6 +9,6 @@ router.post('/register', usersControllers.registerUser);
 router.post('/add-user', usersControllers.addUser);
 
 // Authenticate a user
-router.post('login', usersControllers.authenticateUser);
+router.post('/login', usersControllers.authenticateUser);
 
 module.exports = router;
