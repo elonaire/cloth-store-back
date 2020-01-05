@@ -1,9 +1,10 @@
-const jwt = require("json-web-token");
+const jwt = require("jsonwebtoken");
 const generateUUID = require("hat");
 const User = require("../models").User;
 const bcrypt = require("bcryptjs");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
+const generateOTP = require('./otp');
 
 // Add a user (for admin)
 exports.addUser = (req, res, next) => {};
@@ -93,8 +94,26 @@ exports.authenticateUser = async (req, res, next) => {
           console.log('isMatched', isMatched);
           
           if (isMatched) {
-            res.status(200).json(users[0].dataValues);
+            // generate OTP
+            let OTP = generateOTP();
+
+            // generate JWTAUTH
+            let secret = process.env.SECRET;
+            const JWTAUTH = jwt.sign(
+              {
+                username: loginCredentials.username
+              },
+              secret,
+              {
+                  expiresIn: '1h'
+              }
+          );
+            res.status(200).json({
+              OTP,
+              JWTAUTH
+            });
           } else {
+            error = 'Wrong username or password';
             res.status(403).json({
               message: error
             });
