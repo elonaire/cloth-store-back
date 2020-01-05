@@ -4,7 +4,7 @@ const User = require("../models").User;
 const bcrypt = require("bcryptjs");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-const generateOTP = require('./otp');
+const generateOTP = require("./otp");
 
 // Add a user (for admin)
 exports.addUser = (req, res, next) => {};
@@ -36,7 +36,7 @@ exports.registerUser = async (req, res, next) => {
       if (users.length > 0) {
         userExists = true;
       }
-  
+
       if (userExists) {
         res.status(403).json({
           message: "user already exists"
@@ -47,17 +47,18 @@ exports.registerUser = async (req, res, next) => {
           bcrypt.hash(userDetails.password, salt, async (err, hash) => {
             // generate userID
             userDetails["userID"] = generateUUID();
-  
+
             try {
               let user = await User.create({
                 username: userDetails.username,
                 user_id: userDetails.userID,
+                user_role: 'PUBLIC',
                 first_name: userDetails.firstName,
                 last_name: userDetails.lastName,
                 phone: userDetails.phone,
                 email: userDetails.email,
                 password: hash
-              })
+              });
 
               res.status(201).json(user);
             } catch (error) {
@@ -67,7 +68,7 @@ exports.registerUser = async (req, res, next) => {
         });
       }
     } catch (err) {
-      err => res.status(400).json(err)
+      err => res.status(400).json(err);
     }
   } else {
     res.status(400).json({
@@ -91,11 +92,14 @@ exports.authenticateUser = async (req, res, next) => {
         loginCredentials.password,
         users[0].dataValues.password,
         (error, isMatched) => {
-          console.log('isMatched', isMatched);
-          
+          console.log("isMatched", isMatched);
+
           if (isMatched) {
             // generate OTP
             let OTP = generateOTP();
+
+            let accessToken = generateUUID.rack();
+            let refreshToken = generateUUID.rack();
 
             // generate JWTAUTH
             let secret = process.env.SECRET;
@@ -105,27 +109,27 @@ exports.authenticateUser = async (req, res, next) => {
               },
               secret,
               {
-                  expiresIn: '1h'
+                expiresIn: "1h"
               }
-          );
+            );
             res.status(200).json({
               OTP,
               JWTAUTH
             });
           } else {
-            error = 'Wrong username or password';
+            error = "Wrong username or password";
             res.status(403).json({
               message: error
             });
           }
         }
       );
-    } else{
+    } else {
       res.status(404).json({
-        message: 'User does not exist'
+        message: "User does not exist"
       });
     }
   } catch (err) {
-    err => res.status(404).json(err)
+    err => res.status(404).json(err);
   }
 };
