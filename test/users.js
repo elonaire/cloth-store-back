@@ -1,8 +1,5 @@
 process.env.NODE_ENV = "test";
 const User = require("../api/models").User;
-const Sequelize = require("sequelize");
-const Op = Sequelize.Op;
-const bycrpt = require("bcryptjs");
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -11,18 +8,9 @@ const should = chai.should();
 
 chai.use(chaiHttp);
 
-describe("Users", () => {
-  beforeEach(done => {
-    // User.destroy({
-    //   where: {},
-    //   truncate: true
-    // });
-
-    done();
-  });
-
+describe("/users", () => {
   // test the registration end point
-  describe("/POST register user", () => {
+  describe("POST /users/register", () => {
     User.destroy({
       where: {},
       truncate: true
@@ -53,19 +41,19 @@ describe("Users", () => {
     // test adding an already existing user
     it("it should not POST a duplicate user", done => {
       chai
-          .request(api)
-          .post("/users/register")
-          .send(user)
-          .end((err, res) => {
-            res.should.have.status(403);
-            res.body.should.be.a("object");
-            done();
-          });
+        .request(api)
+        .post("/users/register")
+        .send(user)
+        .end((err, res) => {
+          res.should.have.status(403);
+          res.body.should.be.a("object");
+          done();
+        });
     });
 
     // test adding a user with some missing information
     it("it should not POST a new user with any missing fields", done => {
-      let duplicateUser = {...user};
+      let duplicateUser = { ...user };
       delete duplicateUser.username;
 
       chai
@@ -81,48 +69,37 @@ describe("Users", () => {
   });
 
   // test the login end point
-  describe("/POST login user", () => {
-    it("it should accept correct user login credentials", done => {
-      let userCredentials = {
-        username: "test_user",
-        password: "test123"
-      };
+  describe("POST /users/login", () => {
+    let correctCredentials = {
+      username: "test_user",
+      password: "test123"
+    };
 
-      User.findAll({
-        where: {
-          username: userCredentials.username
-        }
-      }).then(users => {
-        bycrpt.compare(
-          userCredentials.password,
-          users[0].dataValues.password,
-          (err, isMatched) => {
-            console.log('isMatched', isMatched);
-            
-            if (isMatched) {
-              chai
-                .request(api)
-                .post("/users/login")
-                .send(userCredentials)
-                .end((err, res) => {
-                  res.should.have.status(200);
-                  res.body.should.be.a("object");
-                  done();
-                });
-            } else {
-              chai
-                .request(api)
-                .post("/users/login")
-                .send(userCredentials)
-                .end((err, res) => {
-                  res.should.have.status(403);
-                  res.body.should.be.a("object");
-                  done();
-                });
-            }
-          }
-        );
-      });
+    it("it should accept correct user login credentials", done => {
+      chai
+        .request(api)
+        .post("/users/login")
+        .send(correctCredentials)
+        .end((err, res) => {
+          res.should.have.status(200);
+          res.body.should.be.a("object");
+          done();
+        });
+    });
+
+    it("it should reject wrong user login credentials", done => {
+      let wrongCredentials = {...correctCredentials};
+      wrongCredentials.password = 'abujubuju';
+
+      chai
+        .request(api)
+        .post("/users/login")
+        .send(wrongCredentials)
+        .end((err, res) => {
+          res.should.have.status(403);
+          res.body.should.be.a("object");
+          done();
+        });
     });
   });
 });
