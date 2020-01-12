@@ -9,6 +9,16 @@ const should = chai.should();
 chai.use(chaiHttp);
 
 describe("/users", () => {
+
+  let user = {
+    username: "test_user",
+    firstName: "Test",
+    lastName: "User",
+    phone: "0704730039",
+    email: "elonsantos63@gmail.com",
+    password: "test123"
+  };
+  
   // test the registration end point
   describe("POST /users/register", () => {
     User.destroy({
@@ -16,17 +26,8 @@ describe("/users", () => {
       truncate: true
     });
 
-    let user = {
-      username: "test_user",
-      firstName: "Test",
-      lastName: "User",
-      phone: "0704730039",
-      email: "elonsantos63@gmail.com",
-      password: "test123"
-    };
-
     // test adding a new user to the DB
-    it("it should POST a new user", done => {
+    it("it should POST a new user during PUBLIC user registration", done => {
       chai
         .request(api)
         .post("/users/register")
@@ -70,9 +71,10 @@ describe("/users", () => {
 
   // test the login end point
   describe("POST /users/login", () => {
+    let { username, password } = user;
     let correctCredentials = {
-      username: "test_user",
-      password: "test123"
+      username,
+      password
     };
 
     it("it should accept correct user login credentials", done => {
@@ -99,8 +101,36 @@ describe("/users", () => {
         .end((err, res) => {
           res.should.have.status(403);
           res.body.should.be.a("object");
+          User.destroy({
+            where: {},
+            truncate: true
+          });
           done();
         });
+    });
+  });
+
+  describe('POST /users/add-user', () => {
+    it('it should allow the site admin to add a new user', done => {
+      chai
+      .request(api)
+      .post('/users/add-user')
+      .send(user)
+      .end((err, res) => {
+        res.should.have.status(201);
+        done();
+      });
+    });
+
+    it('it should bar the site admin from adding a duplicate user', done => {
+      chai
+      .request(api)
+      .post('/users/add-user')
+      .send(user)
+      .end((err, res) => {
+        res.should.have.status(403);
+        done();
+      });
     });
   });
 });

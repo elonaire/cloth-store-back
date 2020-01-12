@@ -1,16 +1,16 @@
 const jwt = require("jsonwebtoken");
 const generateUUID = require("hat");
-const User = require("../models").User;
 const bcrypt = require("bcryptjs");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const generateOTP = require("./otp");
+// const moment = require('moment');
 
-// Add a user (for admin)
-exports.addUser = (req, res, next) => {};
+const User = require("../models").User;
+const Temp = require('../models').Temp;
 
 // Register a new public user
-exports.registerUser = async (req, res, next) => {
+let registerUser = async (req, res, next) => {
   let userDetails = req.body;
   if (
     userDetails.username &&
@@ -49,10 +49,14 @@ exports.registerUser = async (req, res, next) => {
             userDetails["userID"] = generateUUID();
 
             try {
+              let userRole = userDetails.userRole ? userDetails.userRole : 'PUBLIC';
+              console.log(userRole);
+              
+
               let user = await User.create({
                 username: userDetails.username,
                 user_id: userDetails.userID,
-                user_role: 'PUBLIC',
+                user_role: userRole,
                 first_name: userDetails.firstName,
                 last_name: userDetails.lastName,
                 phone: userDetails.phone,
@@ -77,8 +81,11 @@ exports.registerUser = async (req, res, next) => {
   }
 };
 
+// Add a user (for admin)
+let addUser = registerUser;
+
 // authenticate a user
-exports.authenticateUser = async (req, res, next) => {
+let authenticateUser = async (req, res, next) => {
   let loginCredentials = req.body;
   try {
     let users = await User.findAll({
@@ -87,22 +94,30 @@ exports.authenticateUser = async (req, res, next) => {
       }
     });
 
+    let userData = users[0].dataValues;
+
     if (users.length > 0) {
       bcrypt.compare(
         loginCredentials.password,
-        users[0].dataValues.password,
+        userData.password,
         (error, isMatched) => {
-          console.log("isMatched", isMatched);
+          // console.log("isMatched", isMatched);
 
           if (isMatched) {
             // generate OTP
             let OTP = generateOTP();
+            let secret = null;
 
-            let accessToken = generateUUID.rack();
-            let refreshToken = generateUUID.rack();
-
+            // assign secret
+            if (userData.user_role === 'PUBLIC') {
+              secret = process.env.USER_SECRET;
+            } else if (userData.user_role === 'ADMIN') {
+              secret = process.env.ADMIN_SECRET;
+            } else if (userData.user_role === 'ICT') {
+              secret = process.env.ICT_SECRET;
+            }
+            
             // generate JWTAUTH
-            let secret = process.env.SECRET;
             const JWTAUTH = jwt.sign(
               {
                 username: loginCredentials.username
@@ -112,6 +127,13 @@ exports.authenticateUser = async (req, res, next) => {
                 expiresIn: "1h"
               }
             );
+
+             // create user session
+             Temp.create({
+              otp: OTP,
+              user_id: users[0].dataValues.user_id
+            });
+
             res.status(200).json({
               OTP,
               JWTAUTH
@@ -132,4 +154,10 @@ exports.authenticateUser = async (req, res, next) => {
   } catch (err) {
     err => res.status(404).json(err);
   }
+};
+
+module.exports = {
+  addUser,
+  registerUser,
+  authenticateUser
 };
