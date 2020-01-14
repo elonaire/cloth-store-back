@@ -4,6 +4,6 @@ const indexControllers = require('../controllers/index')
 const authGuard = require('../middleware/auth-guard').authGuard;
 
 /* GET home page. */
-router.get('/', authGuard, indexControllers.homePageData);
+router.get('/', indexControllers.homePageData);
 
 module.exports = router;

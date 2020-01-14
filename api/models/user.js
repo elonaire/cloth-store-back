@@ -38,7 +38,12 @@ module.exports = (sequelize, DataTypes) => {
     User.hasOne(models.Temp, {
       foreignKey: 'user_id',
       as: 'userTemp'
-    })
+    });
+
+    User.hasMany(models.File, {
+      foreignKey: 'user_id',
+      as: 'userFiles'
+    });
   };
   return User;
 };

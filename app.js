@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const indexRouter = require('./api/routes/index');
 const usersRouter = require('./api/routes/users');
+const productsRouter = require('./api/routes/products');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/products', productsRouter);
 
 app.use((err, req, res, next) => {
     if (err) {
