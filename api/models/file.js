@@ -1,17 +1,18 @@
 module.exports = (sequelize, DataTypes) => {
   const File = sequelize.define('File', {
-    file_id: DataTypes.STRING
+    file_id: DataTypes.STRING,
+    file_name: DataTypes.STRING
   }, {});
   File.associate = (models) => {
     // associations can be defined here
-    File.belongsTo(models.Product, {
-      foreignKey: 'product_id',
-      onDelete: 'CASCADE'
+    File.hasMany(models.ProductFile, {
+      foreignKey: 'file_id',
+      as: 'productFiles'
     });
 
-    File.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      onDelete: 'CASCADE'
+    File.hasMany(models.UserFile, {
+      foreignKey: 'file_id',
+      as: 'userFiles'
     });
   };
   return File;

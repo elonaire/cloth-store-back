@@ -5,8 +5,9 @@ module.exports = (sequelize, DataTypes) => {
   Temp.associate = (models) => {
     // associations can be defined here
     Temp.belongsTo(models.User, {
-      foreignKey: 'user_id'
-    })
+      foreignKey: 'user_id',
+      onDelete: 'CASCADE'
+    });
   };
   return Temp;
 };

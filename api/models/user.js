@@ -20,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    gender: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     phone: {
       type: DataTypes.STRING,
       allowNull: false
@@ -36,11 +40,10 @@ module.exports = (sequelize, DataTypes) => {
   User.associate = (models) => {
     // associations can be defined here
     User.hasOne(models.Temp, {
-      foreignKey: 'user_id',
-      as: 'userTemp'
+      foreignKey: 'user_id'
     });
 
-    User.hasMany(models.File, {
+    User.hasMany(models.UserFile, {
       foreignKey: 'user_id',
       as: 'userFiles'
     });
