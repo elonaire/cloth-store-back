@@ -1,5 +1,6 @@
 process.env.NODE_ENV = "test";
-const User = require("../api/models").User;
+const names = require("human-names");
+const generatePhoneNo = require("../api/controllers/utils").generatePhoneNo;
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -8,22 +9,51 @@ const should = chai.should();
 
 chai.use(chaiHttp);
 
+class User {
+  constructor(username, firstName, lastName, gender, phone, email, password) {
+    this.username = username;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.gender = gender;
+    this.phone = phone;
+    this.email = email;
+    this.password = password;
+  }
+}
+
+let user;
+
+let generateNewUser = () => {
+  let nameGenders = ["femaleRandom", "maleRandom"];
+  let nameGender = nameGenders[Math.floor(Math.random() * 2)];
+  let firstName = null;
+  let lastName = null;
+  let gender = null;
+  let phone = generatePhoneNo();
+
+  if (nameGender === "femaleRandom") {
+    gender = 'FEMALE';
+    firstName = names.femaleRandom();
+    lastName = names.femaleRandom();
+  } else {
+    gender = 'MALE';
+    firstName = names.maleRandom();
+    lastName = names.maleRandom();
+  }
+
+  let username = `${firstName + lastName}`.toLowerCase();
+  let email = `${username}@gmail.com`;
+  let password = 'test_123';
+
+  user = new User(username, firstName, lastName, gender, phone, email, password);
+}
+
 describe("/users", () => {
-  let user = {
-    username: "test_user",
-    firstName: "Test",
-    lastName: "User",
-    phone: "0704730039",
-    email: "elonsantos63@gmail.com",
-    password: "test123"
-  };
-
   // test the registration end point
+  generateNewUser();
+  console.log(user);
+  
   describe("POST /users/register", () => {
-    User.destroy({
-      where: {}
-    });
-
     // test adding a new user to the DB
     it("it should POST a new user during PUBLIC user registration", done => {
       chai
@@ -99,9 +129,6 @@ describe("/users", () => {
         .end((err, res) => {
           res.should.have.status(403);
           res.body.should.be.a("object");
-          User.destroy({
-            where: {}
-          });
           done();
         });
     });
@@ -109,6 +136,7 @@ describe("/users", () => {
 
   describe("POST /users/add-user", () => {
     it("it should allow the site admin to add a new user", done => {
+      generateNewUser();
       chai
         .request(api)
         .post("/users/add-user")
