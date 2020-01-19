@@ -1,14 +1,19 @@
 module.exports = {
-  up: (queryInterface, Sequelize) =>
-    queryInterface.createTable("Temps", {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('UserFiles', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      otp: {
-        type: Sequelize.STRING
+      file_id: {
+        type: Sequelize.STRING,
+        onDelete: 'CASCADE',
+        references: {
+          model: 'Files',
+          key: 'file_id',
+          as: 'file_id'
+        },
       },
       user_id: {
         type: Sequelize.STRING,
@@ -28,5 +33,5 @@ module.exports = {
         type: Sequelize.DATE
       }
     }),
-  down: (queryInterface, Sequelize) => queryInterface.dropTable("Temps")
+  down: (queryInterface, Sequelize) => queryInterface.dropTable('UserFiles')
 };
