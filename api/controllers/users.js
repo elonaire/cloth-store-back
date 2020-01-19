@@ -3,81 +3,81 @@ const generateUUID = require("hat");
 const bcrypt = require("bcryptjs");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-const generateOTP = require("./otp");
+const generateOTP = require("./utils").generateOTP;
 // const moment = require('moment');
 
 const User = require("../models").User;
-const Temp = require('../models').Temp;
+const Temp = require("../models").Temp;
 
 // Register a new public user
 let registerUser = async (req, res, next) => {
   let userDetails = req.body;
-  if (
-    userDetails.username &&
-    userDetails.firstName &&
-    userDetails.lastName &&
-    userDetails.phone &&
-    userDetails.email &&
-    userDetails.password
-  ) {
-    let userExists = false;
 
-    try {
-      let users = await User.findAll({
-        where: {
-          [Op.or]: [
-            { username: userDetails.username },
-            { email: userDetails.email },
-            { phone: userDetails.phone }
-          ]
-        }
+  for(let field of Object.values(userDetails)) {
+    if (!field) {
+      res.status(400).json({
+        message: "ensure the payload has all the required information"
       });
-
-      if (users.length > 0) {
-        userExists = true;
-      }
-
-      if (userExists) {
-        res.status(403).json({
-          message: "user already exists"
-        });
-      } else {
-        // encrypt password
-        bcrypt.genSalt(10, (err, salt) => {
-          bcrypt.hash(userDetails.password, salt, async (err, hash) => {
-            // generate userID
-            userDetails["userID"] = generateUUID();
-
-            try {
-              let userRole = userDetails.userRole ? userDetails.userRole : 'PUBLIC';
-              console.log(userRole);
-              
-
-              let user = await User.create({
-                username: userDetails.username,
-                user_id: userDetails.userID,
-                user_role: userRole,
-                first_name: userDetails.firstName,
-                last_name: userDetails.lastName,
-                phone: userDetails.phone,
-                email: userDetails.email,
-                password: hash
-              });
-
-              res.status(201).json(user);
-            } catch (error) {
-              error => res.status(400).json(error);
-            }
-          });
-        });
-      }
-    } catch (err) {
-      err => res.status(400).json(err);
     }
-  } else {
-    res.status(400).json({
-      message: "ensure the payload has all the required information"
+  }
+
+  let userExists = false;
+
+  try {
+    let users = await User.findAll({
+      where: {
+        [Op.or]: [
+          { username: userDetails.username },
+          { email: userDetails.email },
+          { phone: userDetails.phone }
+        ]
+      }
     });
+
+    if (users.length > 0) {
+      userExists = true;
+    }
+
+    if (userExists) {
+      res.status(403).json({
+        message: "user already exists"
+      });
+    } else {
+      // encrypt password
+      bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(userDetails.password, salt, async (err, hash) => {
+          // generate userID
+          userDetails["userID"] = generateUUID();
+
+          try {
+            let userRole = userDetails.userRole
+              ? userDetails.userRole
+              : "PUBLIC";
+            console.log(userRole);
+
+            let user = {};
+
+            for (let field of Object.keys(userDetails)) {
+              if (field === "user_role") {
+                user[field] = userRole;
+              } else if (field === "password") {
+                user[field] = hash;
+              } else {
+                user[field] = userDetails[field];
+              }
+            }
+
+            let createdUser = await User.create(user);
+
+            res.status(201).json(createdUser);
+          } catch (error) {
+            error => res.status(400).json(error);
+          }
+        });
+      });
+    }
+  } catch (err) {
+    err => res.status(400).json(err);
   }
 };
 
@@ -109,14 +109,14 @@ let authenticateUser = async (req, res, next) => {
             let secret = null;
 
             // assign secret
-            if (userData.user_role === 'PUBLIC') {
+            if (userData.user_role === "PUBLIC") {
               secret = process.env.USER_SECRET;
-            } else if (userData.user_role === 'ADMIN') {
+            } else if (userData.user_role === "ADMIN") {
               secret = process.env.ADMIN_SECRET;
-            } else if (userData.user_role === 'ICT') {
+            } else if (userData.user_role === "ICT") {
               secret = process.env.ICT_SECRET;
             }
-            
+
             // generate JWTAUTH
             const JWTAUTH = jwt.sign(
               {
@@ -128,8 +128,8 @@ let authenticateUser = async (req, res, next) => {
               }
             );
 
-             // create user session
-             Temp.create({
+            // create user session
+            Temp.create({
               otp: OTP,
               user_id: users[0].dataValues.user_id
             });
