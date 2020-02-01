@@ -1,6 +1,8 @@
 process.env.NODE_ENV = "test";
-const names = require("human-names");
-const generatePhoneNo = require("../api/controllers/utils").generatePhoneNo;
+const User = require('../api/seeders/user').User;
+const generateNewUser = require('../api/seeders/user').generateNewUser;
+const Product = require('../api/seeders/products').Product;
+const generateProduct = require('../api/seeders/products').generateProduct;
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -9,49 +11,11 @@ const should = chai.should();
 
 chai.use(chaiHttp);
 
-class User {
-  constructor(username, firstName, lastName, gender, phone, email, password) {
-    this.username = username;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.gender = gender;
-    this.phone = phone;
-    this.email = email;
-    this.password = password;
-  }
-}
-
 let user;
-
-let generateNewUser = () => {
-  let nameGenders = ["femaleRandom", "maleRandom"];
-  let nameGender = nameGenders[Math.floor(Math.random() * 2)];
-  let firstName = null;
-  let lastName = null;
-  let gender = null;
-  let phone = generatePhoneNo();
-
-  if (nameGender === "femaleRandom") {
-    gender = 'FEMALE';
-    firstName = names.femaleRandom();
-    lastName = names.femaleRandom();
-  } else {
-    gender = 'MALE';
-    firstName = names.maleRandom();
-    lastName = names.maleRandom();
-  }
-
-  let username = `${firstName + lastName}`.toLowerCase();
-  let email = `${username}@gmail.com`;
-  let password = 'test_123';
-
-  user = new User(username, firstName, lastName, gender, phone, email, password);
-}
 
 describe("/users", () => {
   // test the registration end point
-  generateNewUser();
-  console.log(user);
+  user = generateNewUser(User);
   
   describe("POST /users/register", () => {
     // test adding a new user to the DB
@@ -136,7 +100,7 @@ describe("/users", () => {
 
   describe("POST /users/add-user", () => {
     it("it should allow the site admin to add a new user", done => {
-      generateNewUser();
+      user = generateNewUser(User);
       chai
         .request(api)
         .post("/users/add-user")
@@ -161,20 +125,7 @@ describe("/users", () => {
 });
 
 describe("/products", () => {
-  let product = {
-    category: "clothing",
-    type: "pants",
-    gender: "male",
-    color: "navy blue",
-    name: "CC pants",
-    description: "pants for men",
-    price: 200,
-    stock: 60,
-    file: {
-      name: "rr3243ssf23242ffd",
-      path: "fsdfds"
-    }
-  };
+  let product = generateProduct(Product);
 
   it("it should add a new product", done => {
     chai
@@ -184,7 +135,6 @@ describe("/products", () => {
       .end((err, res) => {
         res.should.have.status(201);
         res.body.should.be.a("object");
-        product.product_id = res.body.product_id;
         done();
       });
   });
