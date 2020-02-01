@@ -1,45 +1,113 @@
-const Product = require('../models').Product;
+const Product = require("../models").Product;
+const ProductFile = require("../models").ProductFile;
+const File = require("../models").File;
+const generateUUID = require("uuid/v4");
+const mockFiles = require("../seeders/products").files;
 
-let getProducts = (req, res, next) => {
-    res.status(200).json([]);
-}
+let getProducts = async (req, res, next) => {
+  // fetch all
+  let products = await Product.findAll({
+    where: {}
+  });
+
+  // fetch by filters - TODO
+  
+  res.status(200).json(products);
+};
 
 let addProduct = async (req, res, next) => {
-    let requestDetails = req.body;
+  let requestDetails = req.body;
 
-    let product = {};
-    let file = req.file;
-    
+  let product = {};
+  // check if product_id is defined - (for tests, it is already defined)
+  product["product_id"] = requestDetails.product_id ? requestDetails.product_id : generateUUID();
 
-    for(let field of Object.keys(requestDetails)) {
-        product[field] = requestDetails[field];
+  for (let field of Object.keys(requestDetails)) {
+    product[field] = requestDetails[field];
+  }
+
+  try {
+    let createdProduct = await Product.create(product);
+  } catch (error) {
+    res.status(400).json(error);
+  }
+
+  let productPictures = [];
+  let files;
+
+  if (process.env.NODE_ENV === "test") {
+    files = mockFiles;
+  } else {
+    files = req.files;
+  }
+  console.log("files", files);
+
+  for (let fileDetails of files) {
+    let mimetype = fileDetails.mimetype;
+    let begin = mimetype.lastIndexOf("/") + 1;
+    let extension = mimetype.substr(begin);
+    let filename = fileDetails.filename
+      ? fileDetails.filename
+      : `${generateUUID() + "." + extension}`;
+
+    let file = {};
+    file["file_name"] = filename;
+    file["file_id"] = generateUUID();
+    productPictures.push(file);
+  }
+
+  console.log("productPictures", productPictures);
+
+  for (let productPicture of productPictures) {
+    try {
+      let cFile = await File.create(productPicture);
+      let pFile = await ProductFile.create({
+        product_id: product["product_id"],
+        file_id: productPicture.file_id
+      });
+    } catch (error) {
+      res.status(400).json({ error, msg: "NEH" });
     }
+  }
 
-
-    res.status(201).json({
-        message: 'created',
-        file,
-        product
-    });
-
-    // let createdProduct = await Product.create(product);
-}
+  res.status(201).json({
+    message: "created"
+  });
+};
 
 let editProduct = (req, res, next) => {
-    res.status(200).json({
-        message: 'edited'
-    });
-}
+  let prodId = req.params.id;
+  res.status(200).json({
+    message: `edited ${prodId}`
+  });
+};
 
-let deleteProduct = (req, res, next) => {
-    res.status(200).json({
-        message: `${req.params.id} was deleted`
+let deleteProduct = async (req, res, next) => {
+  let product_id = req.params.id;
+
+  try {
+    let deletedProduct = await Product.destroy({
+      where: {
+        product_id
+      }
     });
-}
+
+    // check if a deletion has occured to prove that the product existed
+    let message = deletedProduct ? 'Delected Succesfully' : (() => {throw 'Product does not exist'})();
+    
+    res.status(200).json({
+      message
+    });
+  } catch (error) {
+    res.status(404).json({
+      error
+    });
+  }
+};
 
 module.exports = {
-    getProducts,
-    addProduct,
-    editProduct,
-    deleteProduct
-}
+  getProducts,
+  addProduct,
+  editProduct,
+  deleteProduct
+};

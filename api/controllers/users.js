@@ -13,71 +13,87 @@ const Temp = require("../models").Temp;
 let registerUser = async (req, res, next) => {
   let userDetails = req.body;
 
-  for(let field of Object.values(userDetails)) {
-    if (!field) {
-      res.status(400).json({
-        message: "ensure the payload has all the required information"
+  if (
+    userDetails.username &&
+    userDetails.first_name &&
+    userDetails.last_name &&
+    userDetails.gender &&
+    userDetails.phone &&
+    userDetails.email &&
+    userDetails.password
+  ) {
+    let userExists = false;
+
+    try {
+      let users = await User.findAll({
+        where: {
+          [Op.or]: [
+            { username: userDetails.username },
+            { email: userDetails.email },
+            { phone: userDetails.phone }
+          ]
+        }
       });
-    }
-  }
 
-  let userExists = false;
+      console.log("passes db check");
 
-  try {
-    let users = await User.findAll({
-      where: {
-        [Op.or]: [
-          { username: userDetails.username },
-          { email: userDetails.email },
-          { phone: userDetails.phone }
-        ]
+      if (users.length > 0) {
+        userExists = true;
       }
-    });
 
-    if (users.length > 0) {
-      userExists = true;
-    }
-
-    if (userExists) {
-      res.status(403).json({
-        message: "user already exists"
-      });
-    } else {
-      // encrypt password
-      bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(userDetails.password, salt, async (err, hash) => {
-          // generate userID
-          userDetails["userID"] = generateUUID();
-
-          try {
-            let userRole = userDetails.userRole
-              ? userDetails.userRole
-              : "PUBLIC";
-            console.log(userRole);
-
-            let user = {};
-
-            for (let field of Object.keys(userDetails)) {
-              if (field === "user_role") {
-                user[field] = userRole;
-              } else if (field === "password") {
-                user[field] = hash;
-              } else {
-                user[field] = userDetails[field];
-              }
-            }
-
-            let createdUser = await User.create(user);
-
-            res.status(201).json(createdUser);
-          } catch (error) {
-            error => res.status(400).json(error);
-          }
+      if (userExists) {
+        res.status(403).json({
+          message: "user already exists"
         });
-      });
+      } else {
+        // encrypt password
+        bcrypt.genSalt(10, (err, salt) => {
+          bcrypt.hash(userDetails.password, salt, async (err, hash) => {
+            // generate userID
+            userDetails["user_id"] = generateUUID();
+
+            try {
+              let userRole = userDetails.user_role
+                ? userDetails.user_role
+                : "PUBLIC";
+              console.log(userRole);
+
+              let user = {};
+              let userRoleIsDefined = false;
+
+              for (let field of Object.keys(userDetails)) {
+                if (field === "user_role") {
+                  userRoleIsDefined = true;
+                }
+                if (field === "password") {
+                  user[field] = hash;
+                } else {
+                  user[field] = userDetails[field];
+                }
+              }
+
+              if (!userRoleIsDefined) {
+                user["user_role"] = userRole;
+              }
+
+              console.log("built", user);
+
+              let createdUser = await User.create(user);
+
+              res.status(201).json(createdUser);
+            } catch (error) {
+              error => res.status(400).json(error);
+            }
+          });
+        });
+      }
+    } catch (err) {
+      err => res.status(400).json(err);
     }
-  } catch (err) {
-    err => res.status(400).json(err);
+  } else {
+    res.status(400).json({
+      message: "ensure the payload has all the required information"
+    });
   }
 };
 
