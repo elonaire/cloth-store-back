@@ -1,5 +1,8 @@
+const generateUUID = require('uuid/v4');
+
 class Product {
-  constructor(category, type, gender, color, name, description, price, stock, files) {
+  constructor(product_id, category, type, gender, color, name, description, price, stock, files) {
+    this.product_id = product_id;
     this.category = category;
     this.type = type;
     this.gender = gender;
@@ -13,7 +16,9 @@ class Product {
 }
 
 let generateProduct = productClass => {
+  let prodId = generateUUID();
   let product = new productClass(
+    prodId,
     "Clothing",
     "pants",
     "MALE",
@@ -33,9 +38,6 @@ let files = [
     originalname: 'Screenshot (3).png',
     encoding: '7bit',
     mimetype: 'image/png',
-    destination: 'C:\\Users\\USER\\Documents\\elon projects\\JavaScript\\Node\\cloth-store-api\\public\\images\\products',
-    filename: 'undefinedpng',
-    path: 'C:\\Users\\USER\\Documents\\elon projects\\JavaScript\\Node\\cloth-store-api\\public\\images\\products\\undefinedpng',
     size: 1074235
   }
 ]
