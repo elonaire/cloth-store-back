@@ -9,6 +9,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'product_id',
       onDelete: 'CASCADE'
     });
+
+    ProductFile.belongsTo(models.File, {
+      foreignKey: 'file_id',
+      onDelete: 'CASCADE'
+    });
   };
   return ProductFile;
 };

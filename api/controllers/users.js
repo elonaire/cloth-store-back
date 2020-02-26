@@ -8,6 +8,7 @@ const generateOTP = require("./utils").generateOTP;
 
 const User = require("../models").User;
 const Temp = require("../models").Temp;
+const UserPointAward = require("../models").UserPointAward;
 
 // Register a new public user
 let registerUser = async (req, res, next) => {
@@ -77,6 +78,10 @@ let registerUser = async (req, res, next) => {
               }
 
               console.log("built", user);
+              // create Nimo points
+              const points = await UserPointAward.create({
+                user_id: user["user_id"]
+              });
 
               let createdUser = await User.create(user);
 
@@ -116,7 +121,7 @@ let authenticateUser = async (req, res, next) => {
       bcrypt.compare(
         loginCredentials.password,
         userData.password,
-        (error, isMatched) => {
+        async (error, isMatched) => {
           // console.log("isMatched", isMatched);
 
           if (isMatched) {
@@ -145,7 +150,7 @@ let authenticateUser = async (req, res, next) => {
             );
 
             // create user session
-            Temp.create({
+            const temp = await Temp.create({
               otp: OTP,
               user_id: users[0].dataValues.user_id
             });

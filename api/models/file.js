@@ -5,14 +5,16 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   File.associate = (models) => {
     // associations can be defined here
-    File.hasMany(models.ProductFile, {
+    File.belongsTo(models.Product, {
+      through: 'ProductFile',
       foreignKey: 'file_id',
-      as: 'productFiles'
+      onDelete: 'CASCADE'
     });
 
-    File.hasMany(models.UserFile, {
+    File.belongsTo(models.User, {
+      through: 'UserFile',
       foreignKey: 'file_id',
-      as: 'userFiles'
+      onDelete: 'CASCADE'
     });
   };
   return File;

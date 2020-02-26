@@ -3,6 +3,7 @@ const ProductFile = require("../models").ProductFile;
 const File = require("../models").File;
 const generateUUID = require("uuid/v4");
 const mockFiles = require("../seeders/products").files;
+const jsonpatch = require("jsonpatch");
 
 let getProducts = async (req, res, next) => {
   // fetch all
@@ -11,7 +12,7 @@ let getProducts = async (req, res, next) => {
   });
 
   // fetch by filters - TODO
-  
+
   res.status(200).json(products);
 };
 
@@ -20,7 +21,11 @@ let addProduct = async (req, res, next) => {
 
   let product = {};
   // check if product_id is defined - (for tests, it is already defined)
-  product["product_id"] = requestDetails.product_id ? requestDetails.product_id : generateUUID();
+  product["product_id"] = requestDetails.product_id
+    ? requestDetails.product_id
+    : generateUUID();
+
+  console.log("pid", product["product_id"]);
 
   for (let field of Object.keys(requestDetails)) {
     product[field] = requestDetails[field];
@@ -75,11 +80,40 @@ let addProduct = async (req, res, next) => {
   });
 };
 
-let editProduct = (req, res, next) => {
+let editProduct = async (req, res, next) => {
+  const changes = req.body;
+
   let prodId = req.params.id;
-  res.status(200).json({
-    message: `edited ${prodId}`
-  });
+  try {
+    let product = await Product.findOne({
+      where: {
+        product_id: prodId
+      }
+    });
+    
+    console.log("changes", changes);
+
+    let editedProduct = null;
+    if (product) {
+      editedProduct = await Product.update(changes, {
+        where: {
+          product_id: prodId
+        }
+      });
+
+      if (editedProduct) {
+        res.status(200).json({
+          message: 'Edit Successful'
+        });
+      } else {
+        throw "Product was not edited"
+      }
+    }
+  } catch (error) {
+    res.json({
+      error
+    });
+  }
 };
 
 let deleteProduct = async (req, res, next) => {
@@ -93,8 +127,12 @@ let deleteProduct = async (req, res, next) => {
     });
 
     // check if a deletion has occured to prove that the product existed
-    let message = deletedProduct ? 'Delected Succesfully' : (() => {throw 'Product does not exist'})();
-    
+    let message = deletedProduct
+      ? "Deleted Succesfully"
+      : (() => {
+          throw "Product does not exist";
+        })();
+
     res.status(200).json({
       message
     });

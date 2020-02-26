@@ -40,6 +40,10 @@ module.exports = {
       price: {
         type: Sequelize.INTEGER
       },
+      rating: {
+        type: Sequelize.INTEGER,
+        defaultValue: 5
+      },
       stock: {
         allowNull: false,
         type: Sequelize.INTEGER

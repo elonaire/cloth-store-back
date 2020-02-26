@@ -33,6 +33,10 @@ module.exports = {
       email: {
         type: Sequelize.STRING
       },
+      rating: {
+        type: Sequelize.INTEGER,
+        defaultValue: 5
+      },
       password: {
         type: Sequelize.STRING
       },

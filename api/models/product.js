@@ -32,6 +32,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
+    rating: {
+      type: DataTypes.INTEGER
+    },
     stock: {
       type: DataTypes.INTEGER,
       allowNull: false
@@ -39,10 +42,6 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   Product.associate = (models) => {
     // associations can be defined here
-    Product.hasMany(models.ProductFile, {
-      foreignKey: 'product_id',
-      as: 'productFiles'
-    });
   };
   return Product;
 };
