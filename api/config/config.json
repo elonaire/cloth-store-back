@@ -14,5 +14,13 @@
     "host": "127.0.0.1",
     "port": 5432,
     "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password":  "Asenekatenka_95!?",
+    "database": "test",
+    "host": "35.239.6.59",
+    "port": 5432,
+    "dialect": "postgres"
   }
 }
