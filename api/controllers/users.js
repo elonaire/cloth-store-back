@@ -5,6 +5,9 @@ const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const generateOTP = require("./utils").generateOTP;
 // const moment = require('moment');
+const EventEmitter = require("events");
+class Job extends EventEmitter {};
+let createUser = new Job();
 
 const User = require("../models").User;
 const Temp = require("../models").Temp;
@@ -78,13 +81,13 @@ let registerUser = async (req, res, next) => {
               }
 
               console.log("built", user);
-              // create Nimo points
-              const points = await UserPointAward.create({
-                user_id: user["user_id"]
-              });
 
               let createdUser = await User.create(user);
 
+              const points = await UserPointAward.create({
+                user_id: user["user_id"]
+              });
+              
               res.status(201).json(createdUser);
             } catch (error) {
               error => res.status(400).json(error);

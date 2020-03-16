@@ -3,6 +3,8 @@ const User = require('../api/seeders/user').User;
 const generateNewUser = require('../api/seeders/user').generateNewUser;
 const Product = require('../api/seeders/products').Product;
 const generateProduct = require('../api/seeders/products').generateProduct;
+const createOrder = require('../api/seeders/orders').createOrder;
+const Order = require('../api/seeders/orders').Order;
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -167,6 +169,56 @@ describe("/products", () => {
       .request(api)
       .delete("/products/delete/" + product.product_id)
       .send(product)
+      .end((err, res) => {
+        res.should.have.status(200);
+        done();
+      });
+  });
+});
+
+describe('/orders', () => {
+  let order = createOrder(Order);
+
+  it("it should create a new order", done => {
+    chai
+      .request(api)
+      .post("/orders/create")
+      .send(order)
+      .end((err, res) => {
+        res.should.have.status(201);
+        res.body.should.be.a("object");
+        done();
+      });
+  });
+
+  it("it should get orders", done => {
+    chai
+      .request(api)
+      .get("/orders")
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a("object");
+        done();
+      });
+  });
+
+  it("it should edit an order", done => {
+    order.quantity = 4;
+    chai
+      .request(api)
+      .patch("/orders/edit/" + order.order_id)
+      .send(order)
+      .end((err, res) => {
+        res.should.have.status(200);
+        done();
+      });
+  });
+
+  it("it should cancel an order", done => {
+    chai
+      .request(api)
+      .delete("/orders/cancel/" + order.order_id)
+      .send(order)
       .end((err, res) => {
         res.should.have.status(200);
         done();

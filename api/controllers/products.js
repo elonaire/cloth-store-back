@@ -3,17 +3,27 @@ const ProductFile = require("../models").ProductFile;
 const File = require("../models").File;
 const generateUUID = require("uuid/v4");
 const mockFiles = require("../seeders/products").files;
-const jsonpatch = require("jsonpatch");
 
 let getProducts = async (req, res, next) => {
   // fetch all
-  let products = await Product.findAll({
-    where: {}
-  });
+  try {
+    let products = await Product.findAll({
+      where: {}
+    });
+
+    if (products) {
+      res.status(200).json(products);
+    } else {
+      throw {
+        error: "Products not found",
+        statusCode: 404
+      };
+    }
+  } catch (error) {
+    res.status(error.statusCode).json(error);
+  }
 
   // fetch by filters - TODO
-
-  res.status(200).json(products);
 };
 
 let addProduct = async (req, res, next) => {
@@ -33,8 +43,14 @@ let addProduct = async (req, res, next) => {
 
   try {
     let createdProduct = await Product.create(product);
+    if (!createdProduct) {
+      throw {
+        error: "Unable to create product",
+        statusCode: 400
+      };
+    }
   } catch (error) {
-    res.status(400).json(error);
+    res.status(error.statusCode).json(error);
   }
 
   let productPictures = [];
@@ -70,8 +86,15 @@ let addProduct = async (req, res, next) => {
         product_id: product["product_id"],
         file_id: productPicture.file_id
       });
+
+      if (!cFile || !pFile) {
+        throw {
+          error: "Unable to upload file",
+          statusCode: 400
+        };
+      }
     } catch (error) {
-      res.status(400).json({ error, msg: "NEH" });
+      res.status(error.statusCode).json(error);
     }
   }
 
@@ -91,7 +114,12 @@ let editProduct = async (req, res, next) => {
       }
     });
     
-    console.log("changes", changes);
+    if (!product) {
+      throw {
+        error: "Product not found",
+        statusCode: 404
+      };
+    }
 
     let editedProduct = null;
     if (product) {
@@ -106,11 +134,14 @@ let editProduct = async (req, res, next) => {
           message: 'Edit Successful'
         });
       } else {
-        throw "Product was not edited"
+        throw {
+          error: "Product was not edited",
+          statusCode: 400
+        };
       }
     }
   } catch (error) {
-    res.json({
+    res.status(error.statusCode).json({
       error
     });
   }
@@ -126,20 +157,18 @@ let deleteProduct = async (req, res, next) => {
       }
     });
 
-    // check if a deletion has occured to prove that the product existed
-    let message = deletedProduct
-      ? "Deleted Succesfully"
-      : (() => {
-          throw "Product does not exist";
-        })();
+    if (!deletedProduct) {
+      throw {
+        error: "Product was not deleted",
+        statusCode: 400
+      };
+    }
 
     res.status(200).json({
-      message
+      deletedProduct
     });
   } catch (error) {
-    res.status(404).json({
-      error
-    });
+    res.status(error.statusCode).json(error);
   }
 };
 

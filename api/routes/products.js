@@ -4,6 +4,8 @@ const productsControllers = require("../controllers/products");
 const path = require("path");
 const multer = require("multer");
 const generateUUID = require("uuid/v4");
+const authGuard = require('../middleware/auth-guard').authGuard;
+const adminGuard = require('../middleware/auth-guard').adminGuard;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -23,16 +25,17 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.get("/", productsControllers.getProducts);
+router.get("/", authGuard, productsControllers.getProducts);
 
 router.post(
   "/add",
+  adminGuard,
   upload.array("productFiles", 10),
   productsControllers.addProduct
 );
 
-router.patch("/edit/:id", productsControllers.editProduct);
+router.patch("/edit/:id", adminGuard, productsControllers.editProduct);
 
-router.delete("/delete/:id", productsControllers.deleteProduct);
+router.delete("/delete/:id", adminGuard, productsControllers.deleteProduct);
 
 module.exports = router;
