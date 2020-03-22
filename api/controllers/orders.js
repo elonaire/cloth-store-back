@@ -1,4 +1,4 @@
-const Order = require("../models").Order;
+const { Order } = require("../models");
 const generateUUID = require("uuid/v4");
 
 let fetchOrders = async (req, res, next) => {
@@ -95,7 +95,7 @@ let editOrder = async (req, res, next) => {
   try {
     let order = await Order.findOne({
       where: {
-        order_id
+        order_id: orderId
       }
     });
 

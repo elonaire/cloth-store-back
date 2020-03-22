@@ -1,14 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const ordersControllers = require('../controllers/orders')
-const authGuard = require('../middleware/auth-guard').authGuard;
+const {
+  fetchOrders,
+  createOrder,
+  editOrder,
+  cancelOrder
+} = require("../controllers/orders");
+const { authGuard } = require("../middleware/auth-guard");
 
-router.get('/', authGuard, ordersControllers.fetchOrders);
+router.get("/", authGuard, fetchOrders);
 
-router.post('/create', authGuard, ordersControllers.createOrder);
+router.post("/create", authGuard, createOrder);
 
-router.patch('/edit/:id', authGuard, ordersControllers.editOrder);
+router.patch("/edit/:id", authGuard, editOrder);
 
-router.delete('/cancel/:id', authGuard, ordersControllers.cancelOrder);
+router.delete("/cancel/:id", authGuard, cancelOrder);
 
 module.exports = router;

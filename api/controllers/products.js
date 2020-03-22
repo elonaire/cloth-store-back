@@ -1,6 +1,6 @@
-const Product = require("../models").Product;
-const ProductFile = require("../models").ProductFile;
-const File = require("../models").File;
+const { Product } = require("../models");
+const { ProductFile } = require("../models");
+const { File } = require("../models");
 const generateUUID = require("uuid/v4");
 const mockFiles = require("../seeders/products").files;
 

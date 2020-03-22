@@ -3,15 +3,15 @@ const generateUUID = require("hat");
 const bcrypt = require("bcryptjs");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-const generateOTP = require("./utils").generateOTP;
+const { generateOTP } = require("./utils");
 // const moment = require('moment');
 const EventEmitter = require("events");
 class Job extends EventEmitter {};
 let createUser = new Job();
 
-const User = require("../models").User;
-const Temp = require("../models").Temp;
-const UserPointAward = require("../models").UserPointAward;
+const { User } = require("../models");
+const { Temp } = require("../models");
+const { UserPointAward } = require("../models");
 
 // Register a new public user
 let registerUser = async (req, res, next) => {
