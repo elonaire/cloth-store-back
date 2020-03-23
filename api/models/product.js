@@ -32,9 +32,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    rating: {
-      type: DataTypes.INTEGER
-    },
     stock: {
       type: DataTypes.INTEGER,
       allowNull: false

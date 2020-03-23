@@ -1,10 +1,7 @@
 process.env.NODE_ENV = "test";
-const User = require('../api/seeders/user').User;
-const generateNewUser = require('../api/seeders/user').generateNewUser;
-const Product = require('../api/seeders/products').Product;
-const generateProduct = require('../api/seeders/products').generateProduct;
-const createOrder = require('../api/seeders/orders').createOrder;
-const Order = require('../api/seeders/orders').Order;
+const { User, generateNewUser } = require('../api/seeders/user');
+const { Product, generateProduct } = require('../api/seeders/products');
+const { Order, createOrder } = require('../api/seeders/orders');
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -197,7 +194,7 @@ describe('/orders', () => {
       .get("/orders")
       .end((err, res) => {
         res.should.have.status(200);
-        res.body.should.be.a("object");
+        res.body.should.be.a("array");
         done();
       });
   });

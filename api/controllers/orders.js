@@ -95,7 +95,7 @@ let editOrder = async (req, res, next) => {
   try {
     let order = await Order.findOne({
       where: {
-        order_id
+        order_id: orderId
       }
     });
 

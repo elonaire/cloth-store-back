@@ -1,14 +1,19 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('Orders', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('Reviews', {
       id: {
         allowNull: false,
         autoIncrement: true,
-        primaryKey: false,
+        primaryKey: true,
         type: Sequelize.INTEGER
       },
-      order_id: {
-        primaryKey: true,
+      review_id: {
         type: Sequelize.STRING
+      },
+      review: {
+        type: Sequelize.STRING
+      },
+      rating: {
+        type: Sequelize.INTEGER
       },
       user_id: {
         type: Sequelize.STRING,
@@ -28,15 +33,6 @@ module.exports = {
           as: 'product_id'
         },
       },
-      quantity: {
-        type: Sequelize.INTEGER
-      },
-      status: {
-        type: Sequelize.STRING
-      },
-      delivery_details: {
-        type: Sequelize.JSON
-      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -46,5 +42,5 @@ module.exports = {
         type: Sequelize.DATE
       }
     }),
-  down: (queryInterface, Sequelize) => queryInterface.dropTable('Orders')
+  down: (queryInterface, Sequelize) => queryInterface.dropTable('Reviews')
 };
