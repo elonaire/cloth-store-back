@@ -1,4 +1,4 @@
-const Order = require("../models").Order;
+const { Order } = require("../models");
 const generateUUID = require("uuid/v4");
 
 let fetchOrders = async (req, res, next) => {

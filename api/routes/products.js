@@ -4,8 +4,7 @@ const productsControllers = require("../controllers/products");
 const path = require("path");
 const multer = require("multer");
 const generateUUID = require("uuid/v4");
-const authGuard = require('../middleware/auth-guard').authGuard;
-const adminGuard = require('../middleware/auth-guard').adminGuard;
+const { authGuard, adminGuard } = require('../middleware/auth-guard').authGuard;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -14,7 +13,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     let randName = generateUUID();
     console.log('name', randName);
-    
+
     let mimetype = file.mimetype;
     let begin = mimetype.lastIndexOf("/") + 1;
     let extension = mimetype.substr(begin);
@@ -25,17 +24,16 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.get("/", authGuard, productsControllers.getProducts);
+router.get("/", productsControllers.getProducts);
 
 router.post(
   "/add",
-  adminGuard,
   upload.array("productFiles", 10),
   productsControllers.addProduct
 );
 
-router.patch("/edit/:id", adminGuard, productsControllers.editProduct);
+router.patch("/edit/:id", productsControllers.editProduct);
 
-router.delete("/delete/:id", adminGuard, productsControllers.deleteProduct);
+router.delete("/delete/:id", productsControllers.deleteProduct);
 
 module.exports = router;
