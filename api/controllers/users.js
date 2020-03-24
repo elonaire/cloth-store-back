@@ -172,7 +172,7 @@ let authenticateUser = async (req, res, next) => {
     } else {
       throw {
         error: "User does not exist",
-        statusCode: 404
+        statusCode: 403
       };
     }
   } catch (err) {
