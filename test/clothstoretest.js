@@ -224,13 +224,13 @@ describe('/orders', () => {
 });
 
 describe('/blog', () => {
-  // let order = createOrder(Order);
+  let post = {};
 
   it("it should create a new blog post", done => {
     chai
       .request(api)
       .post("/blog/create")
-      .send(order)
+      .send(post)
       .end((err, res) => {
         res.should.have.status(201);
         res.body.should.be.a("object");
@@ -250,11 +250,11 @@ describe('/blog', () => {
   });
 
   it("it should edit a blog post", done => {
-    order.quantity = 4;
+    // order.quantity = 4;
     chai
       .request(api)
-      .patch("/blog/edit/" + order.order_id)
-      .send(order)
+      .patch("/blog/edit/" + post.post_id)
+      .send(post)
       .end((err, res) => {
         res.should.have.status(200);
         done();
@@ -264,8 +264,8 @@ describe('/blog', () => {
   it("it should delete a blog post", done => {
     chai
       .request(api)
-      .delete("/blog/delete/" + order.order_id)
-      .send(order)
+      .delete("/blog/delete/" + post.post_id)
+      .send(post)
       .end((err, res) => {
         res.should.have.status(200);
         done();
