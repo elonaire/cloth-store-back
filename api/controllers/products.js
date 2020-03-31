@@ -1,6 +1,4 @@
-const { Product } = require("../models");
-const { ProductFile } = require("../models");
-const { File } = require("../models");
+const { Product,ProductFile,File } = require("../models");
 const generateUUID = require("uuid/v4");
 const mockFiles = require("../seeders/products").files;
 
@@ -113,7 +111,7 @@ let editProduct = async (req, res, next) => {
         product_id: prodId
       }
     });
-    
+
     if (!product) {
       throw {
         error: "Product not found",

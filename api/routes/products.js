@@ -33,7 +33,6 @@ router.get("/", authGuard, getProducts);
 
 router.post(
   "/add",
-  adminGuard,
   upload.array("productFiles", 10),
   addProduct
 );

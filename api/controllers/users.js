@@ -6,7 +6,7 @@ const Op = Sequelize.Op;
 const { generateOTP } = require("./utils");
 // const moment = require('moment');
 const EventEmitter = require("events");
-class Job extends EventEmitter {};
+class Job extends EventEmitter { };
 let createUser = new Job();
 
 const { User } = require("../models");
@@ -87,7 +87,7 @@ let registerUser = async (req, res, next) => {
               const points = await UserPointAward.create({
                 user_id: user["user_id"]
               });
-              
+
               res.status(201).json(createdUser);
             } catch (error) {
               error => res.status(400).json(error);
@@ -118,9 +118,8 @@ let authenticateUser = async (req, res, next) => {
       }
     });
 
-    let userData = users[0].dataValues;
-
     if (users.length > 0) {
+      let userData = users[0].dataValues;
       bcrypt.compare(
         loginCredentials.password,
         userData.password,
@@ -163,20 +162,21 @@ let authenticateUser = async (req, res, next) => {
               JWTAUTH
             });
           } else {
-            error = "Wrong username or password";
-            res.status(403).json({
-              message: error
-            });
+            throw {
+              error: "Wrong username or password",
+              statusCode: 403
+            };
           }
         }
       );
     } else {
-      res.status(404).json({
-        message: "User does not exist"
-      });
+      throw {
+        error: "User does not exist",
+        statusCode: 403
+      };
     }
   } catch (err) {
-    err => res.status(404).json(err);
+    res.status(err.statusCode).json(err);
   }
 };
 
