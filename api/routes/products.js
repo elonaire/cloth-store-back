@@ -29,10 +29,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.get("/", authGuard, getProducts);
+router.get("/", getProducts);
 
 router.post(
   "/add",
+  adminGuard,
   upload.array("productFiles", 10),
   addProduct
 );

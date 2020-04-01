@@ -1,10 +1,11 @@
-const { Order } = require("../models");
+const { Order, User, Product } = require("../models");
 const generateUUID = require("uuid/v4");
+const jwt = require("jsonwebtoken");
 
 let fetchOrders = async (req, res, next) => {
   // fetch all
   try {
-    console.log('here');
+    console.log("here");
     let orders = await Order.findAll({
       where: {}
     });
@@ -26,6 +27,22 @@ let fetchOrders = async (req, res, next) => {
 
 let createOrder = async (req, res, next) => {
   let order = req.body;
+  let token = req.get("Authorization");
+  let decoded = jwt.decode(token);
+  console.log("order", order);
+
+  let currentUser = decoded.username;
+
+  let user = await User.findOne({
+    where: {
+      username: currentUser
+    }
+  });
+
+  if (user) {
+    // console.log('user', user);
+    order["user_id"] = user.dataValues.user_id;
+  }
 
   if (
     process.env.NODE_ENV === "development" ||
@@ -39,11 +56,53 @@ let createOrder = async (req, res, next) => {
       !order.order_id ||
       !order.quantity ||
       !order.delivery_details ||
-      !order.status
+      !order.status ||
+      !order.product_id ||
+      !order.user_id
     ) {
       throw {
-        error: "Missing field",
+        error: "Missing field(s)",
         statusCode: 400
+      };
+    }
+
+    let productDetails = await Product.findOne({
+      where: {
+        product_id: order.product_id
+      }
+    });
+
+    if (productDetails) {
+      console.log("product details", productDetails);
+      let stock = productDetails.dataValues.stock;
+      if (stock < order.quantity) {
+        throw {
+          error: `Out of stock. Only ${stock} pieces left.`,
+          statusCode: 406
+        };
+      } else {
+        let newStock = stock - order.quantity;
+        let update = {
+          stock: newStock
+        };
+
+        let updatedProduct = await Product.update(update, {
+          where: {
+            product_id: order.product_id
+          }
+        });
+
+        if (!updatedProduct) {
+          throw {
+            error: `Unable to place order.`,
+            statusCode: 400
+          };
+        }
+      }
+    } else {
+      throw {
+        error: `Product not found.`,
+        statusCode: 404
       };
     }
 
@@ -116,7 +175,7 @@ let editOrder = async (req, res, next) => {
 
       if (editedOrder) {
         res.status(200).json({
-          message: 'Edit Successful'
+          message: "Edit Successful"
         });
       } else {
         throw {

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const {adminGuard} = require('../middleware/auth-guard')
 const {
   fetchPosts,
   createNewPost,
@@ -9,10 +10,10 @@ const {
 
 router.get("/", fetchPosts);
 
-router.post("/create", createNewPost);
+router.post("/create", adminGuard, createNewPost);
 
-router.patch("/edit/:id", editPost);
+router.patch("/edit/:id", adminGuard, editPost);
 
-router.delete("/delete/:id", deletePost)
+router.delete("/delete/:id", adminGuard, deletePost)
 
 module.exports = router;

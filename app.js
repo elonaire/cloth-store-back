@@ -10,7 +10,8 @@ const indexRouter = require('./api/routes/index');
 const usersRouter = require('./api/routes/users');
 const productsRouter = require('./api/routes/products');
 const ordersRouter = require('./api/routes/orders');
-const blogRouter = require('./api/routes/blog')
+const blogRouter = require('./api/routes/blog');
+const cartRouter = require('./api/routes/cart')
 
 const app = express();
 app.use(cors());
@@ -26,6 +27,7 @@ app.use('/users', usersRouter);
 app.use('/products', productsRouter);
 app.use('/orders', ordersRouter);
 app.use('/blog', blogRouter);
+app.use('/cart', cartRouter);
 
 app.use((err, req, res, next) => {
     if (err) {

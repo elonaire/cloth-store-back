@@ -6,6 +6,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      quantity: {
+        allowNull: false,
+        type: Sequelize.INTEGER
+      },
       user_id: {
         type: Sequelize.STRING,
         onDelete: 'CASCADE',
@@ -15,13 +19,13 @@ module.exports = {
           as: 'user_id'
         }
       },
-      order_id: {
+      product_id: {
         type: Sequelize.STRING,
         onDelete: 'CASCADE',
         references: {
-          model: 'Orders',
-          key: 'order_id',
-          as: 'order_id'
+          model: 'Products',
+          key: 'product_id',
+          as: 'product_id'
         }
       },
       createdAt: {

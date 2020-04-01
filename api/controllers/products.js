@@ -39,8 +39,9 @@ let addProduct = async (req, res, next) => {
     product[field] = requestDetails[field];
   }
 
+  let createdProduct;
   try {
-    let createdProduct = await Product.create(product);
+    createdProduct = await Product.create(product);
     if (!createdProduct) {
       throw {
         error: "Unable to create product",
@@ -96,9 +97,7 @@ let addProduct = async (req, res, next) => {
     }
   }
 
-  res.status(201).json({
-    message: "created"
-  });
+  res.status(201).json(createdProduct);
 };
 
 let editProduct = async (req, res, next) => {

@@ -1,15 +1,16 @@
 const generateUUID = require('uuid/v4');
 
 class Order {
-    constructor(order_id, quantity, status, delivery_details) {
+    constructor(order_id, quantity, product_id, status, delivery_details) {
         this.order_id = order_id;
         this.quantity = quantity;
+        this.product_id = product_id;
         this.status = status;
         this.delivery_details = delivery_details;
     }
 }
 
-let createOrder = (orderClass) => {
+let createOrder = (orderClass, productId) => {
     const orderId = generateUUID();
     const delivery_details = {
         address: '221 Vihiga',
@@ -18,7 +19,7 @@ let createOrder = (orderClass) => {
         town: 'Kahawa West'
     }
 
-    let order = new orderClass(orderId, 3, 'Pending payment', delivery_details);
+    let order = new orderClass(orderId, 3, productId, 'Pending payment', delivery_details);
 
     return order;
 }

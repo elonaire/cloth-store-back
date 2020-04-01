@@ -1,7 +1,8 @@
 process.env.NODE_ENV = "test";
-const { User, generateNewUser } = require('../api/seeders/user');
-const { Product, generateProduct } = require('../api/seeders/products');
-const { Order, createOrder } = require('../api/seeders/orders');
+const { User, generateNewUser } = require("../api/seeders/user");
+const { Product, generateProduct } = require("../api/seeders/products");
+const { Order, createOrder } = require("../api/seeders/orders");
+const { BlogPost, createNewBlogPost } = require("../api/seeders/blog");
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -11,18 +12,37 @@ const should = chai.should();
 chai.use(chaiHttp);
 
 let user;
+let JWTAUTH;
+let admin;
+let ADMINAUTH;
+let sampleProductId;
+let order;
 
 describe("/users", () => {
   // test the registration end point
   user = generateNewUser(User);
-  
+  admin = generateNewUser(User, "ADMIN");
+
   describe("POST /users/register", () => {
-    // test adding a new user to the DB
+    // test adding a new PUBLIC user to the DB
     it("it should POST a new user during PUBLIC user registration", done => {
       chai
         .request(api)
         .post("/users/register")
         .send(user)
+        .end((err, res) => {
+          res.should.have.status(201);
+          res.body.should.be.a("object");
+          done();
+        });
+    });
+
+    // test adding a new SUPERUSER user to the DB
+    it("it should POST a new SUPER user", done => {
+      chai
+        .request(api)
+        .post("/users/register")
+        .send(admin)
         .end((err, res) => {
           res.should.have.status(201);
           res.body.should.be.a("object");
@@ -68,12 +88,32 @@ describe("/users", () => {
       password
     };
 
-    it("it should accept correct user login credentials", done => {
+    it("it should accept correct PUBLIC user login credentials", done => {
       chai
         .request(api)
         .post("/users/login")
         .send(correctCredentials)
         .end((err, res) => {
+          JWTAUTH = res.body.JWTAUTH;
+          res.should.have.status(200);
+          res.body.should.be.a("object");
+          res.body.should.have.property("OTP");
+          done();
+        });
+    });
+
+    it("it should accept correct SUPER user login credentials", done => {
+      let { username, password } = admin;
+      let correctAdminCredentials = {
+        username,
+        password
+      };
+      chai
+        .request(api)
+        .post("/users/login")
+        .send(correctAdminCredentials)
+        .end((err, res) => {
+          ADMINAUTH = res.body.JWTAUTH;
           res.should.have.status(200);
           res.body.should.be.a("object");
           res.body.should.have.property("OTP");
@@ -103,6 +143,7 @@ describe("/users", () => {
       chai
         .request(api)
         .post("/users/add-user")
+        .set("Authorization", ADMINAUTH)
         .send(user)
         .end((err, res) => {
           res.should.have.status(201);
@@ -114,6 +155,7 @@ describe("/users", () => {
       chai
         .request(api)
         .post("/users/add-user")
+        .set("Authorization", ADMINAUTH)
         .send(user)
         .end((err, res) => {
           res.should.have.status(403);
@@ -125,13 +167,32 @@ describe("/users", () => {
 
 describe("/products", () => {
   let product = generateProduct(Product);
+  let product2 = generateProduct(Product);
 
   it("it should add a new product", done => {
     chai
       .request(api)
       .post("/products/add")
+      .set("Authorization", ADMINAUTH)
       .send(product)
       .end((err, res) => {
+        res.should.have.status(201);
+        res.body.should.be.a("object");
+        done();
+      });
+  });
+
+  it("it should add another product", done => {
+    chai
+      .request(api)
+      .post("/products/add")
+      .set("Authorization", ADMINAUTH)
+      .send(product2)
+      .end((err, res) => {
+        sampleProductId = res.body.product_id;
+        console.log('samp', sampleProductId);
+        order = createOrder(Order, sampleProductId);
+        
         res.should.have.status(201);
         res.body.should.be.a("object");
         done();
@@ -154,6 +215,7 @@ describe("/products", () => {
     chai
       .request(api)
       .patch("/products/edit/" + product.product_id)
+      .set("Authorization", ADMINAUTH)
       .send(product)
       .end((err, res) => {
         res.should.have.status(200);
@@ -165,6 +227,7 @@ describe("/products", () => {
     chai
       .request(api)
       .delete("/products/delete/" + product.product_id)
+      .set("Authorization", ADMINAUTH)
       .send(product)
       .end((err, res) => {
         res.should.have.status(200);
@@ -173,13 +236,12 @@ describe("/products", () => {
   });
 });
 
-describe('/orders', () => {
-  let order = createOrder(Order);
-
+describe("/orders", () => {
   it("it should create a new order", done => {
     chai
       .request(api)
       .post("/orders/create")
+      .set("Authorization", JWTAUTH)
       .send(order)
       .end((err, res) => {
         res.should.have.status(201);
@@ -192,6 +254,7 @@ describe('/orders', () => {
     chai
       .request(api)
       .get("/orders")
+      .set("Authorization", JWTAUTH)
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a("array");
@@ -204,6 +267,7 @@ describe('/orders', () => {
     chai
       .request(api)
       .patch("/orders/edit/" + order.order_id)
+      .set("Authorization", JWTAUTH)
       .send(order)
       .end((err, res) => {
         res.should.have.status(200);
@@ -215,6 +279,7 @@ describe('/orders', () => {
     chai
       .request(api)
       .delete("/orders/cancel/" + order.order_id)
+      .set("Authorization", JWTAUTH)
       .send(order)
       .end((err, res) => {
         res.should.have.status(200);
@@ -223,13 +288,14 @@ describe('/orders', () => {
   });
 });
 
-describe('/blog', () => {
-  let post = {};
+describe("/blog", () => {
+  let post = createNewBlogPost(BlogPost);
 
   it("it should create a new blog post", done => {
     chai
       .request(api)
       .post("/blog/create")
+      .set("Authorization", ADMINAUTH)
       .send(post)
       .end((err, res) => {
         res.should.have.status(201);
@@ -250,10 +316,11 @@ describe('/blog', () => {
   });
 
   it("it should edit a blog post", done => {
-    // order.quantity = 4;
+    post.author = "Nellies Aseneka";
     chai
       .request(api)
       .patch("/blog/edit/" + post.post_id)
+      .set("Authorization", ADMINAUTH)
       .send(post)
       .end((err, res) => {
         res.should.have.status(200);
@@ -265,7 +332,65 @@ describe('/blog', () => {
     chai
       .request(api)
       .delete("/blog/delete/" + post.post_id)
+      .set("Authorization", ADMINAUTH)
       .send(post)
+      .end((err, res) => {
+        res.should.have.status(200);
+        done();
+      });
+  });
+});
+
+describe("/cart", () => {
+  let cartItem = {
+    quantity: 5,
+    product_id: sampleProductId
+  }
+
+  it("it should add a new item to the cart", done => {
+    chai
+      .request(api)
+      .post("/cart/add")
+      .set("Authorization", JWTAUTH)
+      .send(cartItem)
+      .end((err, res) => {
+        res.should.have.status(201);
+        res.body.should.be.a("object");
+        done();
+      });
+  });
+
+  it("it should get cart items for the logged in user", done => {
+    chai
+      .request(api)
+      .get("/cart")
+      .set("Authorization", JWTAUTH)
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a("array");
+        done();
+      });
+  });
+
+  it("it should edit an item in the cart", done => {
+    cartItem.quantity = 9;
+    chai
+      .request(api)
+      .patch("/cart/edit/" + sampleProductId)
+      .set("Authorization", JWTAUTH)
+      .send(cartItem)
+      .end((err, res) => {
+        res.should.have.status(200);
+        done();
+      });
+  });
+
+  it("it should remove an item from the cart", done => {
+    chai
+      .request(api)
+      .delete("/cart/remove/" + sampleProductId)
+      .set("Authorization", JWTAUTH)
+      .send(cartItem)
       .end((err, res) => {
         res.should.have.status(200);
         done();

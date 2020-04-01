@@ -112,66 +112,73 @@ let addUser = registerUser;
 let authenticateUser = async (req, res, next) => {
   let loginCredentials = req.body;
   try {
-    let users = await User.findAll({
+    let user = await User.findOne({
       where: {
         username: loginCredentials.username
       }
     });
 
-    if (users.length > 0) {
-      let userData = users[0].dataValues;
-      bcrypt.compare(
+    // console.log('user', user);
+    
+
+    if (user) {
+      let userData = user.dataValues;
+      let isMatched = await bcrypt.compare(
         loginCredentials.password,
-        userData.password,
-        async (error, isMatched) => {
-          // console.log("isMatched", isMatched);
+        userData.password
+      );
 
-          if (isMatched) {
-            // generate OTP
-            let OTP = generateOTP();
-            let secret = null;
+      if (isMatched) {
+        // generate OTP
+        let OTP = generateOTP();
+        let secret = null;
 
-            // assign secret
-            if (userData.user_role === "PUBLIC") {
-              secret = process.env.USER_SECRET;
-            } else if (userData.user_role === "ADMIN") {
-              secret = process.env.ADMIN_SECRET;
-            } else if (userData.user_role === "ICT") {
-              secret = process.env.ICT_SECRET;
-            }
+        // assign secret
+        if (userData.user_role === "PUBLIC") {
+          secret = process.env.USER_SECRET;
+        } else if (userData.user_role === "ADMIN") {
+          secret = process.env.ADMIN_SECRET;
+        } else if (userData.user_role === "ICT") {
+          secret = process.env.ICT_SECRET;
+        }
 
-            // generate JWTAUTH
-            const JWTAUTH = jwt.sign(
-              {
-                username: loginCredentials.username
-              },
-              secret,
-              {
-                expiresIn: "1h"
-              }
-            );
+        // generate JWTAUTH
+        const JWTAUTH = jwt.sign(
+          {
+            username: loginCredentials.username
+          },
+          secret,
+          {
+            expiresIn: "1h"
+          }
+        );
 
-            // create user session
-            const temp = await Temp.create({
-              otp: OTP,
-              user_id: users[0].dataValues.user_id
-            });
+        // store OTP
+        const temp = await Temp.create({
+          otp: OTP,
+          user_id: user.dataValues.user_id
+        });
 
-            res.status(200).json({
-              OTP,
-              JWTAUTH
-            });
-          } else {
-            throw {
-              error: "Wrong username or password",
-              statusCode: 403
-            };
+        if (!temp) {
+          throw {
+            error: 'User session creation failed',
+            statusCode: 400
           }
         }
-      );
+
+        res.status(200).json({
+          OTP,
+          JWTAUTH
+        });
+      } else {
+        throw {
+          error: "Wrong username or password",
+          statusCode: 403
+        };
+      }
     } else {
       throw {
-        error: "User does not exist",
+        error: "Wrong username or password",
         statusCode: 403
       };
     }
