@@ -397,3 +397,18 @@ describe("/cart", () => {
       });
   });
 });
+
+describe("/checkout", () => {
+  it("it should checkout", done => {
+    chai
+      .request(api)
+      .post("/checkout/pay")
+      .set("Authorization", JWTAUTH)
+      .send({})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a("object");
+        done();
+      });
+  });
+});

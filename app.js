@@ -12,6 +12,7 @@ const productsRouter = require("./api/routes/products");
 const ordersRouter = require("./api/routes/orders");
 const blogRouter = require("./api/routes/blog");
 const cartRouter = require("./api/routes/cart");
+const checkoutRouter = require("./api/routes/checkout");
 
 const app = express();
 var whitelist = ["http://localhost:3000", "http://nimonaturals.com"];
@@ -38,6 +39,7 @@ if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "producti
   app.use("/orders", cors(corsOptions), ordersRouter);
   app.use("/blog", cors(corsOptions), blogRouter);
   app.use("/cart", cors(corsOptions), cartRouter);
+  app.use("/checkout", cors(corsOptions), checkoutRouter);
 } else if (process.env.NODE_ENV === "test") {
   app.use("/", indexRouter);
   app.use("/users", usersRouter);
@@ -45,7 +47,13 @@ if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "producti
   app.use("/orders", ordersRouter);
   app.use("/blog", blogRouter);
   app.use("/cart", cartRouter);
+  app.use("/checkout", checkoutRouter);
 }
+
+app.get('/callback', (req, res, next) => {
+  console.log(req);
+  
+})
 
 app.use((err, req, res, next) => {
   if (err) {
