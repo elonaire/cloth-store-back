@@ -15,7 +15,7 @@ const cartRouter = require("./api/routes/cart");
 const checkoutRouter = require("./api/routes/checkout");
 
 const app = express();
-var whitelist = ["http://localhost:3000", "http://nimonaturals.com"];
+var whitelist = ["http://localhost:3000", "http://nimonaturals.com", "http://34.67.57.125:3006"];
 var corsOptions = {
   origin: function(origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {

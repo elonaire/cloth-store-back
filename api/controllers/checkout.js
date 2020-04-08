@@ -55,7 +55,7 @@ const makePayment = async (req, res, next) => {
         PartyA: "254704730039",
         PartyB: "174379",
         PhoneNumber: "254704730039",
-        CallBackURL: "http://127.0.0.1:4000/callback",
+        CallBackURL: "http://34.67.57.125:3000/callback",
         AccountReference: " ",
         TransactionDesc: "Payment for goods",
       };
