@@ -168,7 +168,11 @@ let authenticateUser = async (req, res, next) => {
 
         res.status(200).json({
           OTP,
-          JWTAUTH
+          JWTAUTH,
+          user: {
+            userId: user.user_id,
+            userRole: user.user_role
+          }
         });
       } else {
         throw {

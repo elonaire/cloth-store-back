@@ -1,26 +1,38 @@
-let generateOTP = () => {
-    let OTP = '';
-    for(let i = 0; i < 6; i++) {
-        with(Math) {
-            OTP += floor(random() * 10).toString();
-        }
-    }
+let bcrypt = require("bcryptjs");
 
-    return OTP;
-}
+let generateOTP = () => {
+  let OTP = "";
+  for (let i = 0; i < 6; i++) {
+    with (Math) {
+      OTP += floor(random() * 10).toString();
+    }
+  }
+
+  return OTP;
+};
 
 let generatePhoneNo = () => {
-    let phone = '07';
-    for(let i = 0; i < 8; i++) {
-        with(Math) {
-            phone += floor(random() * 10).toString();
-        }
+  let phone = "07";
+  for (let i = 0; i < 8; i++) {
+    with (Math) {
+      phone += floor(random() * 10).toString();
     }
+  }
 
-    return phone;
-}
+  return phone;
+};
+
+let generateHash = (password) => {
+  bcrypt.genSalt(10, function (err, salt) {
+    bcrypt.hash(password, salt, (err, hash) => {
+        console.log(hash);
+        
+    });
+  });
+};
 
 module.exports = {
-    generateOTP,
-    generatePhoneNo
+  generateOTP,
+  generatePhoneNo,
+  generateHash
 };
