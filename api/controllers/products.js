@@ -26,6 +26,8 @@ let getProducts = async (req, res, next) => {
 
 let addProduct = async (req, res, next) => {
   let requestDetails = req.body;
+  console.log('det', requestDetails);
+  
 
   let product = {};
   // check if product_id is defined - (for tests, it is already defined)
