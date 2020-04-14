@@ -3,9 +3,12 @@ const router = express.Router();
 const {
   registerUser,
   addUser,
-  authenticateUser
+  authenticateUser,
+  fetchUsers
 } = require("../controllers/users");
 const { authGuard, adminGuard } = require("../middleware/auth-guard");
+// fetch users
+router.get('/', fetchUsers)
 
 /* Register user */
 router.post("/register", registerUser);

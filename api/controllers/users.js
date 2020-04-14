@@ -6,12 +6,32 @@ const Op = Sequelize.Op;
 const { generateOTP } = require("./utils");
 // const moment = require('moment');
 const EventEmitter = require("events");
-class Job extends EventEmitter { };
+class Job extends EventEmitter {}
 let createUser = new Job();
 
 const { User } = require("../models");
 const { Temp } = require("../models");
 const { UserPointAward } = require("../models");
+
+let fetchUsers = async (req, res, next) => {
+  try {
+    console.log("here");
+    let users = await User.findAll({
+      where: {},
+    });
+
+    if (users) {
+      res.status(200).json(users);
+    } else {
+      throw {
+        error: "Users not found",
+        statusCode: 404,
+      };
+    }
+  } catch (error) {
+    res.status(error.statusCode).json(error);
+  }
+};
 
 // Register a new public user
 let registerUser = async (req, res, next) => {
@@ -34,9 +54,9 @@ let registerUser = async (req, res, next) => {
           [Op.or]: [
             { username: userDetails.username },
             { email: userDetails.email },
-            { phone: userDetails.phone }
-          ]
-        }
+            { phone: userDetails.phone },
+          ],
+        },
       });
 
       console.log("passes db check");
@@ -47,7 +67,7 @@ let registerUser = async (req, res, next) => {
 
       if (userExists) {
         res.status(403).json({
-          message: "user already exists"
+          message: "user already exists",
         });
       } else {
         // encrypt password
@@ -85,22 +105,22 @@ let registerUser = async (req, res, next) => {
               let createdUser = await User.create(user);
 
               const points = await UserPointAward.create({
-                user_id: user["user_id"]
+                user_id: user["user_id"],
               });
 
               res.status(201).json(createdUser);
             } catch (error) {
-              error => res.status(400).json(error);
+              (error) => res.status(400).json(error);
             }
           });
         });
       }
     } catch (err) {
-      err => res.status(400).json(err);
+      (err) => res.status(400).json(err);
     }
   } else {
     res.status(400).json({
-      message: "ensure the payload has all the required information"
+      message: "ensure the payload has all the required information",
     });
   }
 };
@@ -114,12 +134,11 @@ let authenticateUser = async (req, res, next) => {
   try {
     let user = await User.findOne({
       where: {
-        username: loginCredentials.username
-      }
+        username: loginCredentials.username,
+      },
     });
 
     // console.log('user', user);
-    
 
     if (user) {
       let userData = user.dataValues;
@@ -145,25 +164,25 @@ let authenticateUser = async (req, res, next) => {
         // generate JWTAUTH
         const JWTAUTH = jwt.sign(
           {
-            username: loginCredentials.username
+            username: loginCredentials.username,
           },
           secret,
           {
-            expiresIn: "1h"
+            expiresIn: "1h",
           }
         );
 
         // store OTP
         const temp = await Temp.create({
           otp: OTP,
-          user_id: user.dataValues.user_id
+          user_id: user.dataValues.user_id,
         });
 
         if (!temp) {
           throw {
-            error: 'User session creation failed',
-            statusCode: 400
-          }
+            error: "User session creation failed",
+            statusCode: 400,
+          };
         }
 
         res.status(200).json({
@@ -171,19 +190,19 @@ let authenticateUser = async (req, res, next) => {
           JWTAUTH,
           user: {
             userId: user.user_id,
-            userRole: user.user_role
-          }
+            userRole: user.user_role,
+          },
         });
       } else {
         throw {
           error: "Wrong username or password",
-          statusCode: 403
+          statusCode: 403,
         };
       }
     } else {
       throw {
         error: "Wrong username or password",
-        statusCode: 403
+        statusCode: 403,
       };
     }
   } catch (err) {
@@ -194,5 +213,6 @@ let authenticateUser = async (req, res, next) => {
 module.exports = {
   addUser,
   registerUser,
-  authenticateUser
+  authenticateUser,
+  fetchUsers
 };
