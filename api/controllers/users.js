@@ -36,6 +36,7 @@ let fetchUsers = async (req, res, next) => {
 // Register a new public user
 let registerUser = async (req, res, next) => {
   let userDetails = req.body;
+  console.log('dets', userDetails);
 
   if (
     userDetails.username &&
@@ -126,7 +127,7 @@ let registerUser = async (req, res, next) => {
 };
 
 // Add a user (for admin)
-let addUser = registerUser;
+// let addUser = registerUser;
 
 // authenticate a user
 let authenticateUser = async (req, res, next) => {
@@ -194,6 +195,8 @@ let authenticateUser = async (req, res, next) => {
           },
         });
       } else {
+        console.log('first');
+        
         throw {
           error: "Wrong username or password",
           statusCode: 403,
@@ -211,7 +214,7 @@ let authenticateUser = async (req, res, next) => {
 };
 
 module.exports = {
-  addUser,
+  // addUser,
   registerUser,
   authenticateUser,
   fetchUsers

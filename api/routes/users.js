@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
   registerUser,
-  addUser,
+  // addUser,
   authenticateUser,
   fetchUsers
 } = require("../controllers/users");
@@ -14,7 +14,7 @@ router.get('/', fetchUsers)
 router.post("/register", registerUser);
 
 // Add a user (for admin)
-router.post("/add-user", adminGuard, addUser);
+router.post("/add-user", adminGuard, registerUser);
 
 // Authenticate a user
 router.post("/login", authenticateUser);

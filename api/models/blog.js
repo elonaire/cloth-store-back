@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     post_id: DataTypes.STRING,
     title: DataTypes.STRING,
     author: DataTypes.STRING,
-    post: DataTypes.STRING
+    post: DataTypes.JSON
   }, {});
   Blog.associate = (models) => {
     // associations can be defined here

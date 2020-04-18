@@ -35,7 +35,7 @@ module.exports = {
       },
       description: {
         allowNull: false,
-        type: Sequelize.STRING
+        type: Sequelize.JSON
       },
       price: {
         type: Sequelize.INTEGER
