@@ -36,7 +36,7 @@ let fetchUsers = async (req, res, next) => {
 // Register a new public user
 let registerUser = async (req, res, next) => {
   let userDetails = req.body;
-  console.log('dets', userDetails);
+  console.log("dets", userDetails);
 
   if (
     userDetails.username &&
@@ -126,8 +126,48 @@ let registerUser = async (req, res, next) => {
   }
 };
 
-// Add a user (for admin)
-// let addUser = registerUser;
+// Edit a user (for admin & user)
+let editUser = async (req, res, next) => {
+  let userId = req.params.id;
+  let changes = req.body;
+
+  try {
+    let user = await User.findOne({
+      where: {
+        user_id: userId,
+      },
+    });
+
+    if (!user) {
+      throw {
+        error: "User not found",
+        statusCode: 404,
+      };
+    }
+
+    let editedUser = null;
+    if (user) {
+      editedUser = await User.update(changes, {
+        where: {
+          user_id: userId,
+        },
+      });
+
+      if (editedUser) {
+        res.status(200).json({
+          message: "Edit Successful",
+        });
+      } else {
+        throw {
+          error: "User was not edited",
+          statusCode: 400,
+        };
+      }
+    }
+  } catch (error) {
+    res.status(error.statusCode).json(error);
+  }
+};
 
 // authenticate a user
 let authenticateUser = async (req, res, next) => {
@@ -195,8 +235,8 @@ let authenticateUser = async (req, res, next) => {
           },
         });
       } else {
-        console.log('first');
-        
+        console.log("first");
+
         throw {
           error: "Wrong username or password",
           statusCode: 403,
@@ -213,9 +253,36 @@ let authenticateUser = async (req, res, next) => {
   }
 };
 
+let deleteUser = async (req, res, next) => {
+  let user_id = req.params.id;
+
+  try {
+    let deleted = await User.destroy({
+      where: {
+        user_id
+      }
+    });
+
+    if (!deleted) {
+      throw {
+        error: "User not found",
+        statusCode: 404
+      };
+    }
+
+    res.status(200).json({
+      message: "User deleted succesfully",
+      deleted
+    });
+  } catch (error) {
+    res.status(error.statusCode).json(error);
+  }
+}
+
 module.exports = {
-  // addUser,
+  editUser,
   registerUser,
   authenticateUser,
-  fetchUsers
+  fetchUsers,
+  deleteUser
 };

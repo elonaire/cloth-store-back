@@ -13,6 +13,7 @@ const ordersRouter = require("./api/routes/orders");
 const blogRouter = require("./api/routes/blog");
 const cartRouter = require("./api/routes/cart");
 const checkoutRouter = require("./api/routes/checkout");
+const categoryRouter = require("./api/routes/category");
 
 const app = express();
 var whitelist = [
@@ -45,6 +46,7 @@ if (process.env.NODE_ENV === "production") {
   app.use("/blog", cors(corsOptions), blogRouter);
   app.use("/cart", cors(corsOptions), cartRouter);
   app.use("/checkout", cors(corsOptions), checkoutRouter);
+  app.use("/category", cors(corsOptions), categoryRouter);
 } else if (
   process.env.NODE_ENV === "development" ||
   process.env.NODE_ENV === "test"
@@ -57,6 +59,7 @@ if (process.env.NODE_ENV === "production") {
   app.use("/blog", blogRouter);
   app.use("/cart", cartRouter);
   app.use("/checkout", checkoutRouter);
+  app.use("/category", categoryRouter);
 }
 
 app.get("/callback", (req, res, next) => {

@@ -3,6 +3,12 @@ const { User, generateNewUser } = require("../api/seeders/user");
 const { Product, generateProduct } = require("../api/seeders/products");
 const { Order, createOrder } = require("../api/seeders/orders");
 const { BlogPost, createNewBlogPost } = require("../api/seeders/blog");
+const {
+  Category,
+  SubCategory,
+  generateCategory,
+  generateSubCategory,
+} = require("../api/seeders/category");
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
@@ -17,6 +23,8 @@ let admin;
 let ADMINAUTH;
 let sampleProductId;
 let order;
+let registeredAdmin;
+let registeredUser;
 
 describe("/users", () => {
   // test the registration end point
@@ -25,12 +33,13 @@ describe("/users", () => {
 
   describe("POST /users/register", () => {
     // test adding a new PUBLIC user to the DB
-    it("it should POST a new user during PUBLIC user registration", done => {
+    it("it should POST a new user during PUBLIC user registration", (done) => {
       chai
         .request(api)
         .post("/users/register")
         .send(user)
         .end((err, res) => {
+          registeredUser = res.body;
           res.should.have.status(201);
           res.body.should.be.a("object");
           done();
@@ -38,12 +47,13 @@ describe("/users", () => {
     });
 
     // test adding a new SUPERUSER user to the DB
-    it("it should POST a new SUPER user", done => {
+    it("it should POST a new SUPER user", (done) => {
       chai
         .request(api)
         .post("/users/register")
         .send(admin)
         .end((err, res) => {
+          registeredAdmin = res.body;
           res.should.have.status(201);
           res.body.should.be.a("object");
           done();
@@ -51,7 +61,7 @@ describe("/users", () => {
     });
 
     // test adding an already existing user
-    it("it should not POST a duplicate user", done => {
+    it("it should not POST a duplicate user", (done) => {
       chai
         .request(api)
         .post("/users/register")
@@ -64,7 +74,7 @@ describe("/users", () => {
     });
 
     // test adding a user with some missing information
-    it("it should not POST a new user with any missing fields", done => {
+    it("it should not POST a new user with any missing fields", (done) => {
       let duplicateUser = { ...user };
       delete duplicateUser.username;
 
@@ -85,10 +95,10 @@ describe("/users", () => {
     let { username, password } = user;
     let correctCredentials = {
       username,
-      password
+      password,
     };
 
-    it("it should accept correct PUBLIC user login credentials", done => {
+    it("it should accept correct PUBLIC user login credentials", (done) => {
       chai
         .request(api)
         .post("/users/login")
@@ -102,11 +112,11 @@ describe("/users", () => {
         });
     });
 
-    it("it should accept correct SUPER user login credentials", done => {
+    it("it should accept correct SUPER user login credentials", (done) => {
       let { username, password } = admin;
       let correctAdminCredentials = {
         username,
-        password
+        password,
       };
       chai
         .request(api)
@@ -121,7 +131,7 @@ describe("/users", () => {
         });
     });
 
-    it("it should reject wrong user login credentials", done => {
+    it("it should reject wrong user login credentials", (done) => {
       let wrongCredentials = { ...correctCredentials };
       wrongCredentials.password = "abujubuju";
 
@@ -135,10 +145,22 @@ describe("/users", () => {
           done();
         });
     });
+
+    it("it should enable a registered user edit their details", (done) => {
+      chai
+        .request(api)
+        .patch(`/users/edit-profile/${registeredUser.user_id}`)
+        .set("Authorization", JWTAUTH)
+        .send(registeredUser)
+        .end((err, res) => {
+          res.should.have.status(200);
+          done();
+        });
+    });
   });
 
   describe("POST /users/add-user", () => {
-    it("it should allow the site admin to add a new user", done => {
+    it("it should allow the site admin to add a new user", (done) => {
       user = generateNewUser(User);
       chai
         .request(api)
@@ -151,7 +173,7 @@ describe("/users", () => {
         });
     });
 
-    it("it should bar the site admin from adding a duplicate user", done => {
+    it("it should bar the site admin from adding a duplicate user", (done) => {
       chai
         .request(api)
         .post("/users/add-user")
@@ -162,6 +184,20 @@ describe("/users", () => {
           done();
         });
     });
+
+    it("it should enable the site admin edit a user's details", (done) => {
+      console.log("user444", registeredAdmin);
+
+      chai
+        .request(api)
+        .patch(`/users/edit/${registeredAdmin.user_id}`)
+        .set("Authorization", ADMINAUTH)
+        .send(registeredAdmin)
+        .end((err, res) => {
+          res.should.have.status(200);
+          done();
+        });
+    });
   });
 });
 
@@ -169,7 +205,7 @@ describe("/products", () => {
   let product = generateProduct(Product);
   let product2 = generateProduct(Product);
 
-  it("it should add a new product", done => {
+  it("it should add a new product", (done) => {
     chai
       .request(api)
       .post("/products/add")
@@ -182,7 +218,7 @@ describe("/products", () => {
       });
   });
 
-  it("it should add another product", done => {
+  it("it should add another product", (done) => {
     chai
       .request(api)
       .post("/products/add")
@@ -190,16 +226,16 @@ describe("/products", () => {
       .send(product2)
       .end((err, res) => {
         sampleProductId = res.body.product_id;
-        console.log('samp', sampleProductId);
+        console.log("samp", sampleProductId);
         order = createOrder(Order, sampleProductId);
-        
+
         res.should.have.status(201);
         res.body.should.be.a("object");
         done();
       });
   });
 
-  it("it should get products", done => {
+  it("it should get products", (done) => {
     chai
       .request(api)
       .get("/products")
@@ -210,7 +246,7 @@ describe("/products", () => {
       });
   });
 
-  it("it should edit a product", done => {
+  it("it should edit a product", (done) => {
     product.name = "Gucci sweater";
     chai
       .request(api)
@@ -223,7 +259,7 @@ describe("/products", () => {
       });
   });
 
-  it("it should delete a product", done => {
+  it("it should delete a product", (done) => {
     chai
       .request(api)
       .delete("/products/delete/" + product.product_id)
@@ -237,7 +273,7 @@ describe("/products", () => {
 });
 
 describe("/orders", () => {
-  it("it should create a new order", done => {
+  it("it should create a new order", (done) => {
     chai
       .request(api)
       .post("/orders/create")
@@ -250,7 +286,7 @@ describe("/orders", () => {
       });
   });
 
-  it("it should get orders", done => {
+  it("it should get orders", (done) => {
     chai
       .request(api)
       .get("/orders")
@@ -262,7 +298,7 @@ describe("/orders", () => {
       });
   });
 
-  it("it should edit an order", done => {
+  it("it should edit an order", (done) => {
     order.quantity = 4;
     chai
       .request(api)
@@ -275,7 +311,7 @@ describe("/orders", () => {
       });
   });
 
-  it("it should cancel an order", done => {
+  it("it should cancel an order", (done) => {
     chai
       .request(api)
       .delete("/orders/cancel/" + order.order_id)
@@ -291,7 +327,7 @@ describe("/orders", () => {
 describe("/blog", () => {
   let post = createNewBlogPost(BlogPost);
 
-  it("it should create a new blog post", done => {
+  it("it should create a new blog post", (done) => {
     chai
       .request(api)
       .post("/blog/create")
@@ -304,7 +340,7 @@ describe("/blog", () => {
       });
   });
 
-  it("it should get blog posts", done => {
+  it("it should get blog posts", (done) => {
     chai
       .request(api)
       .get("/blog")
@@ -315,7 +351,7 @@ describe("/blog", () => {
       });
   });
 
-  it("it should edit a blog post", done => {
+  it("it should edit a blog post", (done) => {
     post.author = "Nellies Aseneka";
     chai
       .request(api)
@@ -328,7 +364,7 @@ describe("/blog", () => {
       });
   });
 
-  it("it should delete a blog post", done => {
+  it("it should delete a blog post", (done) => {
     chai
       .request(api)
       .delete("/blog/delete/" + post.post_id)
@@ -344,10 +380,10 @@ describe("/blog", () => {
 describe("/cart", () => {
   let cartItem = {
     quantity: 5,
-    product_id: sampleProductId
-  }
+    product_id: sampleProductId,
+  };
 
-  it("it should add a new item to the cart", done => {
+  it("it should add a new item to the cart", (done) => {
     chai
       .request(api)
       .post("/cart/add")
@@ -360,7 +396,7 @@ describe("/cart", () => {
       });
   });
 
-  it("it should get cart items for the logged in user", done => {
+  it("it should get cart items for the logged in user", (done) => {
     chai
       .request(api)
       .get("/cart")
@@ -372,7 +408,7 @@ describe("/cart", () => {
       });
   });
 
-  it("it should edit an item in the cart", done => {
+  it("it should edit an item in the cart", (done) => {
     cartItem.quantity = 9;
     chai
       .request(api)
@@ -385,7 +421,7 @@ describe("/cart", () => {
       });
   });
 
-  it("it should remove an item from the cart", done => {
+  it("it should remove an item from the cart", (done) => {
     chai
       .request(api)
       .delete("/cart/remove/" + sampleProductId)
@@ -398,17 +434,73 @@ describe("/cart", () => {
   });
 });
 
-describe("/checkout", () => {
-  it("it should checkout", done => {
+// describe("/checkout", () => {
+//   it("it should checkout", done => {
+//     chai
+//       .request(api)
+//       .post("/checkout/pay")
+//       .set("Authorization", JWTAUTH)
+//       .send({})
+//       .end((err, res) => {
+//         res.should.have.status(200);
+//         res.body.should.be.a("object");
+//         done();
+//       });
+//   });
+// });
+
+let createdCategory;
+describe("/category", () => {
+  let category = generateCategory(Category);
+
+  it("it should add a new category", (done) => {
     chai
       .request(api)
-      .post("/checkout/pay")
-      .set("Authorization", JWTAUTH)
-      .send({})
+      .post("/category")
+      .set("Authorization", ADMINAUTH)
+      .send(category)
       .end((err, res) => {
-        res.should.have.status(200);
+        createdCategory = res.body;
+        res.should.have.status(201);
         res.body.should.be.a("object");
         done();
       });
   });
+
+  it("it should add a sub-category", (done) => {
+    let subCategory = generateSubCategory(SubCategory, createdCategory.category_id);
+    
+    chai
+      .request(api)
+      .post("/category/sub-category")
+      .set("Authorization", ADMINAUTH)
+      .send(subCategory)
+      .end((err, res) => {
+        res.should.have.status(201);
+        done();
+      });
+  });
+
+  it("it should get all categories", (done) => {
+    chai
+      .request(api)
+      .get("/category?category=")
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a("array");
+        done();
+      });
+  });
+
+  it("it should get all sub-categories for a category", (done) => {
+    chai
+      .request(api)
+      .get(`/category?category=${category.category_id}`)
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a("array");
+        done();
+      });
+  });
 });
+
