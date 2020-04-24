@@ -37,7 +37,7 @@ const fetchFiles = async (req, res, next) => {
             };
           } else {
             let fileDetails = file.dataValues;
-            fileDetails["url"] = `${imgUrl + "users/" + file.file_id}`;
+            fileDetails["url"] = `${imgUrl + "users/" + file.file_name}`;
             files.push(fileDetails);
           }
         }
@@ -73,7 +73,7 @@ const fetchFiles = async (req, res, next) => {
             };
           } else {
             let fileDetails = file.dataValues;
-            fileDetails["url"] = `${imgUrl + "products/" + file.file_id}`;
+            fileDetails["url"] = `${imgUrl + "products/" + file.file_name}`;
             files.push(fileDetails);
           }
         }
