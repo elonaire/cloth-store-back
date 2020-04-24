@@ -2,9 +2,18 @@ const { Blog } = require("../models");
 const generateUUID = require("uuid/v4");
 
 const fetchPosts = async (req, res, next) => {
+  let filter = {};
+  let limit = null;
+
+  if (req.query.post_id) {
+    filter['post_id'] = req.query.post_id;
+    limit = 1;
+  }
+
   try {
     let posts = await Blog.findAll({
-      where: {},
+      where: filter,
+      limit
     });
 
     if (!posts) {

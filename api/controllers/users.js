@@ -14,10 +14,19 @@ const { Temp } = require("../models");
 const { UserPointAward } = require("../models");
 
 let fetchUsers = async (req, res, next) => {
+  let filter = {};
+  let limit = null;
+
+  if (req.query.user_id) {
+    filter['user_id'] = req.query.user_id;
+    limit = 1;
+  }
+
   try {
     console.log("here");
     let users = await User.findAll({
-      where: {},
+      where: filter,
+      limit
     });
 
     if (users) {

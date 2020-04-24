@@ -3,11 +3,19 @@ const generateUUID = require("uuid/v4");
 const jwt = require("jsonwebtoken");
 
 let fetchOrders = async (req, res, next) => {
+  let filter = {};
+  let limit = null;
+
+  if (req.query.order_id) {
+    filter['order_id'] = req.query.order_id;
+    limit = 1;
+  }
   // fetch all
   try {
     console.log("here");
     let orders = await Order.findAll({
-      where: {}
+      where: filter,
+      limit
     });
 
     if (orders) {

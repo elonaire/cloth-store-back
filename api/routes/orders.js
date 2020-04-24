@@ -6,9 +6,11 @@ const {
   editOrder,
   cancelOrder
 } = require("../controllers/orders");
-const { authGuard } = require("../middleware/auth-guard");
+const { authGuard, adminGuard } = require("../middleware/auth-guard");
 
 router.get("/", authGuard, fetchOrders);
+
+router.get("/admin", adminGuard, fetchOrders);
 
 router.post("/create", authGuard, createOrder);
 

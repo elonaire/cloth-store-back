@@ -46,12 +46,14 @@ const fetchCategory = async (req, res, next) => {
 };
 
 const addCategory = async (req, res, next) => {
-  try {
-    let category = {};
-    category["category"] = req.body.category;
-    category["category_id"] = generateUUID();
+  let category = {};
+  category["category"] = req.body.category;
+  category["category_id"] = generateUUID();
 
+  try {
     let addedCategory = await Category.create(category);
+
+    console.log("cat", addedCategory);
 
     if (addedCategory) {
       res.status(201).json(addedCategory);
@@ -62,6 +64,8 @@ const addCategory = async (req, res, next) => {
       };
     }
   } catch (error) {
+    console.log(error);
+    
     if (!error.statusCode) {
       error["statusCode"] = 400;
     }

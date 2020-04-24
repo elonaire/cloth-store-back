@@ -3,10 +3,18 @@ const generateUUID = require("uuid/v4");
 const mockFiles = require("../seeders/products").files;
 
 let getProducts = async (req, res, next) => {
+  let filter = {};
+  let limit = null;
+
+  if (req.query.product_id) {
+    filter['product_id'] = req.query.product_id;
+    limit = 1;
+  }
   // fetch all
   try {
     let products = await Product.findAll({
-      where: {}
+      where: filter,
+      limit
     });
 
     if (products) {
