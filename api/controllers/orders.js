@@ -36,9 +36,12 @@ let fetchOrders = async (req, res, next) => {
   } else if (req.query.user_id) { // orders for a specific user
     filter["user_id"] = req.query.user_id;
     queryOrders(UserOrder);
-  } else if (req.product_id) {
+  } else if (req.query.product_id) {
     filter["product_id"] = req.query.product_id;
     queryOrders(ProductOrder);
+  } else if (req.query.status) {
+    filter["status"] = req.query.status;
+    queryOrders(Order);
   } else {
     queryOrders(Order);
   }
