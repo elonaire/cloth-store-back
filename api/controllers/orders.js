@@ -1,4 +1,4 @@
-const { Order, User, Product } = require("../models");
+const { Order, User, Product, UserOrder, ProductOrder } = require("../models");
 const generateUUID = require("uuid/v4");
 const jwt = require("jsonwebtoken");
 
@@ -6,28 +6,41 @@ let fetchOrders = async (req, res, next) => {
   let filter = {};
   let limit = null;
 
-  if (req.query.order_id) {
-    filter['order_id'] = req.query.order_id;
-    limit = 1;
-  }
-  // fetch all
-  try {
-    console.log("here");
-    let orders = await Order.findAll({
-      where: filter,
-      limit
-    });
+  let queryOrders = async (table) => {
+    // fetch all
+    try {
+      console.log("here");
+      let orders = await table.findAll({
+        where: filter,
+        limit,
+      });
 
-    if (orders) {
-      res.status(200).json(orders);
-    } else {
-      throw {
-        error: "Orders not found",
-        statusCode: 404
-      };
+      if (orders) {
+        res.status(200).json(orders);
+      } else {
+        throw {
+          error: "Orders not found",
+          statusCode: 404,
+        };
+      }
+    } catch (error) {
+      res.status(error.statusCode).json(error);
     }
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  };
+
+  // specific order
+  if (req.query.order_id) {
+    filter["order_id"] = req.query.order_id;
+    limit = 1;
+    queryOrders(Order);
+  } else if (req.query.user_id) { // orders for a specific user
+    filter["user_id"] = req.query.user_id;
+    queryOrders(UserOrder);
+  } else if (req.product_id) {
+    filter["product_id"] = req.query.product_id;
+    queryOrders(ProductOrder);
+  } else {
+    queryOrders(Order);
   }
 
   // fetch by filters - TODO
@@ -43,8 +56,8 @@ let createOrder = async (req, res, next) => {
 
   let user = await User.findOne({
     where: {
-      username: currentUser
-    }
+      username: currentUser,
+    },
   });
 
   if (user) {
@@ -70,14 +83,14 @@ let createOrder = async (req, res, next) => {
     ) {
       throw {
         error: "Missing field(s)",
-        statusCode: 400
+        statusCode: 400,
       };
     }
 
     let productDetails = await Product.findOne({
       where: {
-        product_id: order.product_id
-      }
+        product_id: order.product_id,
+      },
     });
 
     if (productDetails) {
@@ -86,31 +99,31 @@ let createOrder = async (req, res, next) => {
       if (stock < order.quantity) {
         throw {
           error: `Out of stock. Only ${stock} pieces left.`,
-          statusCode: 406
+          statusCode: 406,
         };
       } else {
         let newStock = stock - order.quantity;
         let update = {
-          stock: newStock
+          stock: newStock,
         };
 
         let updatedProduct = await Product.update(update, {
           where: {
-            product_id: order.product_id
-          }
+            product_id: order.product_id,
+          },
         });
 
         if (!updatedProduct) {
           throw {
             error: `Unable to place order.`,
-            statusCode: 400
+            statusCode: 400,
           };
         }
       }
     } else {
       throw {
         error: `Product not found.`,
-        statusCode: 404
+        statusCode: 404,
       };
     }
 
@@ -121,7 +134,7 @@ let createOrder = async (req, res, next) => {
     } else {
       throw {
         error: "Order creation failed",
-        statusCode: 400
+        statusCode: 400,
       };
     }
   } catch (error) {
@@ -135,20 +148,20 @@ let cancelOrder = async (req, res, next) => {
   try {
     let deleted = await Order.destroy({
       where: {
-        order_id
-      }
+        order_id,
+      },
     });
 
     if (!deleted) {
       throw {
         error: "Order not found",
-        statusCode: 404
+        statusCode: 404,
       };
     }
 
     res.status(200).json({
       message: "Order deleted succesfully",
-      deleted
+      deleted,
     });
   } catch (error) {
     res.status(error.statusCode).json(error);
@@ -162,14 +175,14 @@ let editOrder = async (req, res, next) => {
   try {
     let order = await Order.findOne({
       where: {
-        order_id: orderId
-      }
+        order_id: orderId,
+      },
     });
 
     if (!order) {
       throw {
         error: "Order not found",
-        statusCode: 404
+        statusCode: 404,
       };
     }
 
@@ -177,18 +190,18 @@ let editOrder = async (req, res, next) => {
     if (order) {
       editedOrder = await Order.update(changes, {
         where: {
-          order_id: orderId
-        }
+          order_id: orderId,
+        },
       });
 
       if (editedOrder) {
         res.status(200).json({
-          message: "Edit Successful"
+          message: "Edit Successful",
         });
       } else {
         throw {
           error: "Order was not edited",
-          statusCode: 400
+          statusCode: 400,
         };
       }
     }
@@ -201,5 +214,5 @@ module.exports = {
   fetchOrders,
   createOrder,
   cancelOrder,
-  editOrder
+  editOrder,
 };
