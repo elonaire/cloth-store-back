@@ -77,7 +77,7 @@ let registerUser = async (req, res, next) => {
 
       if (userExists) {
         res.status(403).json({
-          message: "user already exists",
+          message: "User already exists",
         });
       } else {
         // encrypt password
@@ -141,6 +141,54 @@ let editUser = async (req, res, next) => {
   let changes = req.body;
 
   try {
+    let requester = await User.findOne({
+      where: {
+        username: res.locals.decodedToken.username,
+      },
+    });
+
+    let adminAllowedEdits = ['user_role'];
+    let userAllowedEdits = ['username', 'phone', 'email', 'password'];
+
+    let authorizeEdit = (allowedEdits, changesObj) => {
+      let count = 0;
+      let reqEditsKeys = Object.keys(changesObj);
+      if (reqEditsKeys.length <= allowedEdits.length) {
+        reqEditsKeys.forEach(changesKey => {
+          allowedEdits.forEach(allowedEdit => {
+            if (changesKey === allowedEdit) {
+              count += 1;
+            }
+          })
+        });
+        if (count < reqEditsKeys.length) {
+          throw {
+            error: "Forbidden!",
+            statusCode: 403,
+          };
+        }
+        return;
+      }
+
+      throw {
+        error: "Forbidden!",
+        statusCode: 403,
+      };
+    }
+
+    if (requester.dataValues.user_role === 'ADMIN') {
+      authorizeEdit(adminAllowedEdits, changes);
+    } else if (requester.dataValues.user_role === 'PUBLIC') {
+      // check if requester is same as user
+      if (requester.dataValues.user_id !== userId) {
+        throw {
+          error: "Forbidden",
+          statusCode: 403,
+        };
+      }
+      authorizeEdit(userAllowedEdits, changes);
+    }
+
     let user = await User.findOne({
       where: {
         user_id: userId,
@@ -149,8 +197,8 @@ let editUser = async (req, res, next) => {
 
     if (!user) {
       throw {
-        error: "User not found",
-        statusCode: 404,
+        error: "Edit not successful",
+        statusCode: 400,
       };
     }
 
@@ -168,13 +216,13 @@ let editUser = async (req, res, next) => {
         });
       } else {
         throw {
-          error: "User was not edited",
+          error: "Edit not successful",
           statusCode: 400,
         };
       }
     }
   } catch (error) {
-    res.status(error.statusCode).json(error);
+    error.statusCode ? res.status(error.statusCode).json(error) : res.status(500).json(error);
   }
 };
 

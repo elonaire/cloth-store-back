@@ -4,6 +4,7 @@ let authGuard = (req, res, next) => {
   let token = req.get("Authorization");
   if (token) {
     jwt.verify(token, process.env.USER_SECRET, (err, decoded) => {
+      res.locals.decodedToken = decoded;
       err ? res.status(403).json(err) : next();
     });
   } else {
@@ -17,6 +18,7 @@ let adminGuard = (req, res, next) => {
   let token = req.get("Authorization");
   if (token) {
     jwt.verify(token, process.env.ADMIN_SECRET, (err, decoded) => {
+      res.locals.decodedToken = decoded;
       err ? res.status(403).json(err) : next();
     });
   } else {
@@ -30,6 +32,7 @@ let ictGuard = (req, res, next) => {
   let token = req.get("Authorization");
   if (token) {
     jwt.verify(token, process.env.ICT_SECRET, (err, decoded) => {
+      res.locals.decodedToken = decoded;
       err ? res.status(403).json(err) : next();
     });
   } else {
