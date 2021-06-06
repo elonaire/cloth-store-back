@@ -1,17 +1,16 @@
-const jwt = require("jsonwebtoken");
-const generateUUID = require("hat");
-const bcrypt = require("bcryptjs");
-const Sequelize = require("sequelize");
+const jwt = require('jsonwebtoken');
+const generateUUID = require('hat');
+const bcrypt = require('bcryptjs');
+const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
-const { generateOTP } = require("./utils");
+const { generateOTP } = require('./utils');
 // const moment = require('moment');
-const EventEmitter = require("events");
+const EventEmitter = require('events');
 class Job extends EventEmitter {}
 let createUser = new Job();
+// const { sendMail } = require('./mailer');
 
-const { User } = require("../models");
-const { Temp } = require("../models");
-const { UserPointAward } = require("../models");
+const { User, Temp, UserPointAward } = require('../models');
 
 let fetchUsers = async (req, res, next) => {
   let filter = {};
@@ -23,115 +22,111 @@ let fetchUsers = async (req, res, next) => {
   }
 
   try {
-    console.log("here");
+    console.log('here');
     let users = await User.findAll({
       where: filter,
-      limit
+      limit,
     });
 
     if (users) {
       res.status(200).json(users);
     } else {
       throw {
-        error: "Users not found",
+        error: 'Users not found',
         statusCode: 404,
       };
     }
   } catch (error) {
-    res.status(error.statusCode).json(error);
+    res.locals.error = err;
+    next();
   }
 };
 
 // Register a new public user
 let registerUser = async (req, res, next) => {
   let userDetails = req.body;
-  console.log("dets", userDetails);
+  let userExists = false;
+  console.log('dets', userDetails);
 
-  if (
-    userDetails.username &&
-    userDetails.first_name &&
-    userDetails.last_name &&
-    userDetails.gender &&
-    userDetails.phone &&
-    userDetails.email &&
-    userDetails.password
-  ) {
-    let userExists = false;
-
-    try {
-      let users = await User.findAll({
-        where: {
-          [Op.or]: [
-            { username: userDetails.username },
-            { email: userDetails.email },
-            { phone: userDetails.phone },
-          ],
-        },
-      });
-
-      console.log("passes db check");
-
-      if (users.length > 0) {
-        userExists = true;
+  try {
+    Object.keys(userDetails).forEach((field) => {
+      if (!userDetails[field]) {
+        throw {
+          error: 'ensure the payload has all the required information',
+          statusCode: 400,
+        };
       }
-
-      if (userExists) {
-        res.status(403).json({
-          message: "User already exists",
-        });
-      } else {
-        // encrypt password
-        bcrypt.genSalt(10, (err, salt) => {
-          bcrypt.hash(userDetails.password, salt, async (err, hash) => {
-            // generate userID
-            userDetails["user_id"] = generateUUID();
-
-            try {
-              let userRole = userDetails.user_role
-                ? userDetails.user_role
-                : "PUBLIC";
-              console.log(userRole);
-
-              let user = {};
-              let userRoleIsDefined = false;
-
-              for (let field of Object.keys(userDetails)) {
-                if (field === "user_role") {
-                  userRoleIsDefined = true;
-                }
-                if (field === "password") {
-                  user[field] = hash;
-                } else {
-                  user[field] = userDetails[field];
-                }
-              }
-
-              if (!userRoleIsDefined) {
-                user["user_role"] = userRole;
-              }
-
-              console.log("built", user);
-
-              let createdUser = await User.create(user);
-
-              const points = await UserPointAward.create({
-                user_id: user["user_id"],
-              });
-
-              res.status(201).json(createdUser);
-            } catch (error) {
-              (error) => res.status(400).json(error);
-            }
-          });
-        });
-      }
-    } catch (err) {
-      (err) => res.status(400).json(err);
-    }
-  } else {
-    res.status(400).json({
-      message: "ensure the payload has all the required information",
     });
+
+    let users = await User.findAll({
+      where: {
+        [Op.or]: [
+          { username: userDetails.username },
+          { email: userDetails.email },
+          { phone: userDetails.phone },
+        ],
+      },
+    });
+
+    console.log('passes db check');
+
+    if (users.length > 0) {
+      userExists = true;
+    }
+
+    if (userExists) {
+      res.status(403).json({
+        message: 'User already exists',
+      });
+    } else {
+      // encrypt password
+      bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(userDetails.password, salt, async (err, hash) => {
+          // generate userID
+          userDetails['user_id'] = generateUUID();
+
+          try {
+            let userRole = userDetails.user_role
+              ? userDetails.user_role
+              : 'PUBLIC';
+            console.log(userRole);
+
+            let user = {};
+            let userRoleIsDefined = false;
+
+            for (let field of Object.keys(userDetails)) {
+              if (field === 'user_role') {
+                userRoleIsDefined = true;
+              }
+              if (field === 'password') {
+                user[field] = hash;
+              } else {
+                user[field] = userDetails[field];
+              }
+            }
+
+            if (!userRoleIsDefined) {
+              user['user_role'] = userRole;
+            }
+
+            console.log('built', user);
+
+            let createdUser = await User.create(user);
+
+            const points = await UserPointAward.create({
+              user_id: user['user_id'],
+            });
+
+            res.status(201).json(createdUser);
+          } catch (error) {
+            (error) => res.status(400).json(error);
+          }
+        });
+      });
+    }
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -154,16 +149,16 @@ let editUser = async (req, res, next) => {
       let count = 0;
       let reqEditsKeys = Object.keys(changesObj);
       if (reqEditsKeys.length <= allowedEdits.length) {
-        reqEditsKeys.forEach(changesKey => {
-          allowedEdits.forEach(allowedEdit => {
+        reqEditsKeys.forEach((changesKey) => {
+          allowedEdits.forEach((allowedEdit) => {
             if (changesKey === allowedEdit) {
               count += 1;
             }
-          })
+          });
         });
         if (count < reqEditsKeys.length) {
           throw {
-            error: "Forbidden!",
+            error: 'Forbidden!',
             statusCode: 403,
           };
         }
@@ -171,10 +166,10 @@ let editUser = async (req, res, next) => {
       }
 
       throw {
-        error: "Forbidden!",
+        error: 'Forbidden!',
         statusCode: 403,
       };
-    }
+    };
 
     if (requester.dataValues.user_role === 'ADMIN') {
       authorizeEdit(adminAllowedEdits, changes);
@@ -182,7 +177,7 @@ let editUser = async (req, res, next) => {
       // check if requester is same as user
       if (requester.dataValues.user_id !== userId) {
         throw {
-          error: "Forbidden",
+          error: 'Forbidden',
           statusCode: 403,
         };
       }
@@ -197,7 +192,7 @@ let editUser = async (req, res, next) => {
 
     if (!user) {
       throw {
-        error: "Edit not successful",
+        error: 'Edit not successful',
         statusCode: 400,
       };
     }
@@ -212,23 +207,25 @@ let editUser = async (req, res, next) => {
 
       if (editedUser) {
         res.status(200).json({
-          message: "Edit Successful",
+          message: 'Edit Successful',
         });
       } else {
         throw {
-          error: "Edit not successful",
+          error: 'Edit not successful',
           statusCode: 400,
         };
       }
     }
-  } catch (error) {
-    error.statusCode ? res.status(error.statusCode).json(error) : res.status(500).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
 // authenticate a user
 let authenticateUser = async (req, res, next) => {
   let loginCredentials = req.body;
+  console.log('loginCredentials', loginCredentials);
   try {
     let user = await User.findOne({
       where: {
@@ -236,7 +233,7 @@ let authenticateUser = async (req, res, next) => {
       },
     });
 
-    // console.log('user', user);
+    console.log('user', user);
 
     if (user) {
       let userData = user.dataValues;
@@ -251,11 +248,11 @@ let authenticateUser = async (req, res, next) => {
         let secret = null;
 
         // assign secret
-        if (userData.user_role === "PUBLIC") {
+        if (userData.user_role === 'PUBLIC') {
           secret = process.env.USER_SECRET;
-        } else if (userData.user_role === "ADMIN") {
+        } else if (userData.user_role === 'ADMIN') {
           secret = process.env.ADMIN_SECRET;
-        } else if (userData.user_role === "ICT") {
+        } else if (userData.user_role === 'ICT') {
           secret = process.env.ICT_SECRET;
         }
 
@@ -266,7 +263,7 @@ let authenticateUser = async (req, res, next) => {
           },
           secret,
           {
-            expiresIn: "1h",
+            expiresIn: '1h',
           }
         );
 
@@ -276,9 +273,18 @@ let authenticateUser = async (req, res, next) => {
           user_id: user.dataValues.user_id,
         });
 
+        // sendMail({
+        //   senderName: 'Elon Aseneka',
+        //   senderAddress: 'elonsantos63@gmail.com',
+        //   recipients: ['elonsantos63@gmail.com'],
+        //   subject: 'Hello',
+        //   plainText: 'Hello World',
+        //   htmlBody: `<p><b>OTP: </b>${OTP}</p>`,
+        // });
+
         if (!temp) {
           throw {
-            error: "User session creation failed",
+            error: 'User session creation failed',
             statusCode: 400,
           };
         }
@@ -292,21 +298,23 @@ let authenticateUser = async (req, res, next) => {
           },
         });
       } else {
-        console.log("first");
+        console.log('first');
 
         throw {
-          error: "Wrong username or password",
-          statusCode: 403,
+          error: 'Wrong username or password',
+          statusCode: 401,
         };
       }
     } else {
       throw {
-        error: "Wrong username or password",
-        statusCode: 403,
+        error: 'Wrong username or password',
+        statusCode: 401,
       };
     }
   } catch (err) {
-    res.status(err.statusCode).json(err);
+    console.log('err', err);
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -316,30 +324,31 @@ let deleteUser = async (req, res, next) => {
   try {
     let deleted = await User.destroy({
       where: {
-        user_id
-      }
+        user_id,
+      },
     });
 
     if (!deleted) {
       throw {
-        error: "User not found",
-        statusCode: 404
+        error: 'User not found',
+        statusCode: 404,
       };
     }
 
     res.status(200).json({
-      message: "User deleted succesfully",
-      deleted
+      message: 'User deleted succesfully',
+      deleted,
     });
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
-}
+};
 
 module.exports = {
   editUser,
   registerUser,
   authenticateUser,
   fetchUsers,
-  deleteUser
+  deleteUser,
 };

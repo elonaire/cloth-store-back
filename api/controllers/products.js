@@ -25,8 +25,9 @@ let getProducts = async (req, res, next) => {
         statusCode: 404
       };
     }
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 
   // fetch by filters - TODO
@@ -58,8 +59,9 @@ let addProduct = async (req, res, next) => {
         statusCode: 400
       };
     }
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 
   let productPictures = [];
@@ -102,8 +104,9 @@ let addProduct = async (req, res, next) => {
           statusCode: 400
         };
       }
-    } catch (error) {
-      res.status(error.statusCode).json(error);
+    } catch (err) {
+      res.locals.error = err;
+      next();
     }
   }
 
@@ -147,10 +150,9 @@ let editProduct = async (req, res, next) => {
         };
       }
     }
-  } catch (error) {
-    res.status(error.statusCode).json({
-      error
-    });
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -174,8 +176,9 @@ let deleteProduct = async (req, res, next) => {
     res.status(200).json({
       deletedProduct
     });
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
