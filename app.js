@@ -19,19 +19,20 @@ const categoryRouter = require("./api/routes/category");
 const filesRouter = require("./api/routes/files");
 
 const app = express();
-var whitelist = [
-  "http://localhost:3006",
-  "https://60bc9762fde2ef5e7f5fb999--quizzical-curie-e3aed5.netlify.app"
-];
-var corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-};
+// var whitelist = [
+//   "http://localhost:3006",
+//   "https://60bc9762fde2ef5e7f5fb999--quizzical-curie-e3aed5.netlify.app",
+//   "http://localhost:3000"
+// ];
+// var corsOptions = {
+//   origin: function (origin, callback) {
+//     if (whitelist.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+// };
 
 app.use(logger("dev"));
 app.use(bodyParser.json());
@@ -39,18 +40,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerFile))
+
 
 if (process.env.NODE_ENV === "production") {
   // app.use("/", cors(corsOptions), indexRouter);
-  app.use("/users", cors(corsOptions), usersRouter);
-  app.use("/products", cors(corsOptions), productsRouter);
-  app.use("/orders", cors(corsOptions), ordersRouter);
-  app.use("/blog", cors(corsOptions), blogRouter);
-  app.use("/cart", cors(corsOptions), cartRouter);
-  app.use("/checkout", cors(corsOptions), checkoutRouter);
-  app.use("/category", cors(corsOptions), categoryRouter);
-  app.use("/files", cors(corsOptions), filesRouter);
+  app.use("/users", usersRouter);
+  app.use("/products", productsRouter);
+  app.use("/orders", ordersRouter);
+  app.use("/blog", blogRouter);
+  app.use("/cart", cartRouter);
+  app.use("/checkout", checkoutRouter);
+  app.use("/category", categoryRouter);
+  app.use("/files", filesRouter);
+  app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 } else if (
   process.env.NODE_ENV === "development" ||
   process.env.NODE_ENV === "test"
@@ -65,6 +67,7 @@ if (process.env.NODE_ENV === "production") {
   app.use("/checkout", checkoutRouter);
   app.use("/category", categoryRouter);
   app.use("/files", filesRouter);
+  app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 }
 
 app.get("/callback", (req, res, next) => {

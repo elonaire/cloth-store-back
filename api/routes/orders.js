@@ -8,7 +8,7 @@ const {
 } = require("../controllers/orders");
 const { authGuard, adminGuard } = require("../middleware/auth-guard");
 
-router.get("/", authGuard, fetchOrders);
+router.get("", authGuard, fetchOrders);
 
 router.get("/admin", adminGuard, fetchOrders);
 

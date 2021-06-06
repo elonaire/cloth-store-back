@@ -4,10 +4,10 @@ const { fetchCategory, addCategory, addSubcategory } = require("../controllers/c
 const { adminGuard } = require("../middleware/auth-guard");
 
 // fetch a category and all sub-categories related to it.
-router.get("/", fetchCategory);
+router.get("", fetchCategory);
 
 // add a category
-router.post("/", adminGuard, addCategory);
+router.post("", adminGuard, addCategory);
 
 // add a sub-category
 router.post("/sub-category", adminGuard, addSubcategory);
