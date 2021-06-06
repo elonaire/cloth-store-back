@@ -8,7 +8,7 @@ const {
 } = require("../controllers/cart");
 const { authGuard } = require("../middleware/auth-guard");
 
-router.get("/", authGuard, fetchCartItems);
+router.get("", authGuard, fetchCartItems);
 
 router.post("/add", authGuard, addToCart);
 

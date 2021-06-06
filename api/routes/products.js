@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.get("/", getProducts);
+router.get("", getProducts);
 
 router.post(
   "/add",

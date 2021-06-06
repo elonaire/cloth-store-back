@@ -9,8 +9,10 @@ const doc = {
         title: 'E-commerce RESTful API',
         // description: 'Description',
     },
-    host: process.env.NODE_ENV === 'production' ? 'https://ecommerce-elonaire.herokuapp.com' : 'http://localhost:3000',
+    host: process.env.NODE_ENV === 'production' ? 'ecommerce-elonaire.herokuapp.com' : 'localhost:3000',
     schemes: ['http', 'https']
 }
 
-swaggerAutogen(outputFile, endpointsFiles, doc);
+swaggerAutogen(outputFile, endpointsFiles, doc).then(() => {
+    require('./app.js')
+});
