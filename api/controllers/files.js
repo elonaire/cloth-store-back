@@ -19,9 +19,10 @@ const fetchFiles = async (req, res, next) => {
       });
 
       if (userFiles.length === 0) {
-        res.status(404).json({
-          message: "No files found for this user",
-        });
+        throw {
+          error: "No files found for this user",
+          statusCode: 404
+        };
       } else {
         for (let i = 0; i < userFiles.length; i++) {
           const userFile = userFiles[i];
@@ -34,6 +35,7 @@ const fetchFiles = async (req, res, next) => {
           if (!file) {
             throw {
               error: "File not found",
+              statusCode: 404
             };
           } else {
             let fileDetails = file.dataValues;
@@ -43,8 +45,9 @@ const fetchFiles = async (req, res, next) => {
         }
         res.status(200).json(files);
       }
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      res.locals.error = err;
+      next();
     }
   } else if (req.query.product_id) {
     try {
@@ -70,6 +73,7 @@ const fetchFiles = async (req, res, next) => {
           if (!file) {
             throw {
               error: "File not found",
+              statusCode: 404
             };
           } else {
             let fileDetails = file.dataValues;
@@ -79,8 +83,9 @@ const fetchFiles = async (req, res, next) => {
         }
         res.status(200).json(files);
       }
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      res.locals.error = err;
+      next();
     }
   }
 };

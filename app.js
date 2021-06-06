@@ -4,9 +4,11 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const swaggerUi = require('swagger-ui-express')
+const swaggerFile = require('./swagger_output.json')
 require("dotenv").config();
 
-const indexRouter = require("./api/routes/index");
+// const indexRouter = require("./api/routes/index");
 const usersRouter = require("./api/routes/users");
 const productsRouter = require("./api/routes/products");
 const ordersRouter = require("./api/routes/orders");
@@ -19,9 +21,7 @@ const filesRouter = require("./api/routes/files");
 const app = express();
 var whitelist = [
   "http://localhost:3006",
-  "http://nimonaturals.com",
-  "http://34.67.57.125:3006",
-  "http://192.168.214.206:3006",
+  "https://60bc9762fde2ef5e7f5fb999--quizzical-curie-e3aed5.netlify.app"
 ];
 var corsOptions = {
   origin: function (origin, callback) {
@@ -39,8 +39,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerFile))
+
 if (process.env.NODE_ENV === "production") {
-  app.use("/", cors(corsOptions), indexRouter);
+  // app.use("/", cors(corsOptions), indexRouter);
   app.use("/users", cors(corsOptions), usersRouter);
   app.use("/products", cors(corsOptions), productsRouter);
   app.use("/orders", cors(corsOptions), ordersRouter);
@@ -54,7 +56,7 @@ if (process.env.NODE_ENV === "production") {
   process.env.NODE_ENV === "test"
 ) {
   app.use(cors());
-  app.use("/", indexRouter);
+  // app.use("/", indexRouter);
   app.use("/users", usersRouter);
   app.use("/products", productsRouter);
   app.use("/orders", ordersRouter);
@@ -69,17 +71,20 @@ app.get("/callback", (req, res, next) => {
   console.log(req);
 });
 
-app.use((err, req, res, next) => {
+// error handler
+app.use((req, res, next) => {
+  const err = res.locals.error;
   if (err) {
-    if (err.statusCode) {
+    if (err.statusCode && err.error) {
       res.status(err.statusCode).json(err);
+    } else if (!err.statusCode && err.error) {
+      res.status(500).json(err);
     }
-    res.status(500).json(err);
-  } else {
-    res.status(404).json({
-      message: "Resource not found",
-    });
   }
+  res.status(404).json({
+    error: 'Resource not found',
+    statusCode: 404
+  });
 });
 
 module.exports = app;

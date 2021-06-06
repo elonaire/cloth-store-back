@@ -23,8 +23,9 @@ let fetchOrders = async (req, res, next) => {
           statusCode: 404,
         };
       }
-    } catch (error) {
-      res.status(error.statusCode).json(error);
+    } catch (err) {
+      res.locals.error = err;
+      next();
     }
   };
 
@@ -140,8 +141,9 @@ let createOrder = async (req, res, next) => {
         statusCode: 400,
       };
     }
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -166,8 +168,9 @@ let cancelOrder = async (req, res, next) => {
       message: "Order deleted succesfully",
       deleted,
     });
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -208,8 +211,9 @@ let editOrder = async (req, res, next) => {
         };
       }
     }
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 

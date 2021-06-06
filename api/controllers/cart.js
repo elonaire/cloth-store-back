@@ -32,8 +32,9 @@ const fetchCartItems = async (req, res, next) => {
     }
 
     res.status(200).json(cartItems);
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -68,8 +69,9 @@ const addToCart = async (req, res, next) => {
     }
 
     res.status(201).json(addedToCart);
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -107,8 +109,9 @@ const editCart = async (req, res, next) => {
     }
 
     res.status(200).json(updated);
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -139,8 +142,9 @@ const removeFromCart = async (req, res, next) => {
     
 
     res.status(200).json(deleted);
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
