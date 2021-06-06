@@ -8,7 +8,7 @@ const {
   deletePost,
 } = require("../controllers/blog");
 
-router.get("/", fetchPosts);
+router.get("", fetchPosts);
 
 router.post("/create", adminGuard, createNewPost);
 
