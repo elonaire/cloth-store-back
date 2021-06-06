@@ -24,7 +24,10 @@ const fetchPosts = async (req, res, next) => {
     }
 
     res.status(200).json(posts);
-  } catch (error) {}
+  } catch (err) {
+    res.locals.error = err;
+    next();
+  }
 };
 
 const createNewPost = async (req, res, next) => {
@@ -46,12 +49,9 @@ const createNewPost = async (req, res, next) => {
       };
     }
     res.status(201).json(createdBlogPost);
-  } catch (error) {
-    console.log(error);
-    if (!error.statusCode) {
-      error['statusCode'] = 400;
-    }
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -94,8 +94,9 @@ const editPost = async (req, res, next) => {
     }
 
     // console.log('found', blogPost);
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -120,8 +121,9 @@ const deletePost = async (req, res, next) => {
       message: "Blog Post deleted succesfully",
       deleted,
     });
-  } catch (error) {
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 

@@ -9,7 +9,7 @@ const {
 } = require("../controllers/users");
 const { authGuard, adminGuard } = require("../middleware/auth-guard");
 // fetch users
-router.get('/', fetchUsers)
+router.get('/', adminGuard, fetchUsers)
 
 /* Register user */
 router.post("/register", registerUser);

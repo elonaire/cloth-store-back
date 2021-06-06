@@ -17,11 +17,9 @@ const fetchCategory = async (req, res, next) => {
           error: "Category not found",
         };
       }
-    } catch (error) {
-      if (!error.statusCode) {
-        error["statusCode"] = 400;
-      }
-      res.status(error.statusCode).json(error);
+    } catch (err) {
+      res.locals.error = err;
+      next();
     }
   } else {
     try {
@@ -36,11 +34,9 @@ const fetchCategory = async (req, res, next) => {
           error: "Category not found",
         };
       }
-    } catch (error) {
-      if (!error.statusCode) {
-        error["statusCode"] = 400;
-      }
-      res.status(error.statusCode).json(error);
+    } catch (err) {
+      res.locals.error = err;
+      next();
     }
   }
 };
@@ -63,13 +59,9 @@ const addCategory = async (req, res, next) => {
         error: "Operation failed",
       };
     }
-  } catch (error) {
-    console.log(error);
-    
-    if (!error.statusCode) {
-      error["statusCode"] = 400;
-    }
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 
@@ -87,12 +79,9 @@ const addSubcategory = async (req, res, next) => {
         error: "Operation failed",
       };
     }
-  } catch (error) {
-    if (!error.statusCode) {
-      error["statusCode"] = 400;
-    }
-
-    res.status(error.statusCode).json(error);
+  } catch (err) {
+    res.locals.error = err;
+    next();
   }
 };
 

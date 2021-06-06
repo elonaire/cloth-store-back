@@ -1,8 +1,8 @@
 {
   "development": {
-    "username": "postgres",
+    "username": "elonaire",
     "password": "Asenekatenka_95!?",
-    "database": "clothstore",
+    "database": "postgres",
     "host": "127.0.0.1",
     "port": 5432,
     "dialect": "postgres"
@@ -16,10 +16,10 @@
     "dialect": "postgres"
   },
   "production": {
-    "username": "postgres",
-    "password":  "Asenekatenka_95!?",
-    "database": "test",
-    "host": "35.239.6.59",
+    "username": "lweokwgo",
+    "password":  "Xb01gUZ8vXeUU4R2IDpPX9k9cKslXKPS",
+    "database": "lweokwgo",
+    "host": "batyr.db.elephantsql.com",
     "port": 5432,
     "dialect": "postgres"
   }
